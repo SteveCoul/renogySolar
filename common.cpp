@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/poll.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
@@ -40,5 +41,25 @@ int createTCPServerSocket( unsigned short port ) {
 		}
 	}
 	return server_fd;
+}
+
+void waitForTCPHangup( int fd ) {
+	struct pollfd pfd;
+	pfd.fd = fd;
+	pfd.events = POLLIN | POLLHUP;
+	for (;;) {
+		pfd.revents = 0;
+
+		int ret = poll( &pfd, 1, -1 );
+	
+		if ( pfd.revents & POLLIN ) {
+			char buffer[1024];
+			ret = read( fd, buffer, sizeof(buffer) );
+			if ( ret == 0 ) break;
+		}
+		if ( pfd.revents & POLLHUP ) {
+			break;
+		}	
+	}
 }
 

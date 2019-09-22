@@ -373,6 +373,9 @@ int main( int argc, char** argv ) {
 
 				write( client_fd, headers, p-headers );
 				write( client_fd, buffer, body_len );
+
+				waitForTCPHangup( client_fd );
+				close( client_fd );
 			}
 		}
 	}

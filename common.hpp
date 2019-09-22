@@ -2,6 +2,7 @@
 #define __common_hpp__
 
 int createTCPServerSocket( unsigned short port );
+void waitForTCPHangup( int fd );
 
 #endif
 
