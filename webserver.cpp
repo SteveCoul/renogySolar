@@ -68,7 +68,7 @@ int main( int argc, char** argv ) {
 			
 						char *name = buffer+i;
 						
-						while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) ) i++;
+						while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) && ( buffer[i] != '?' ) ) i++;
 						buffer[i] = 0;
 
 						if ( name[0] == 0 ) name = "index.html";
@@ -78,7 +78,7 @@ int main( int argc, char** argv ) {
 							sprintf( buffer, "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n" );
 							write( client_fd, buffer, strlen(buffer) );
 						} else {
-							sprintf( buffer, "HTTP/1.0 200 Okay\r\nConnection: Close\r\nContent-Length: %d\r\n\r\n", lseek( fd, 0, SEEK_END ) );
+							sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nConnection: Close\r\nContent-Length: %d\r\n\r\n", lseek( fd, 0, SEEK_END ) );
 							lseek( fd, 0, SEEK_SET);
 							write( client_fd, buffer, strlen(buffer) );
 							for (;;) {
