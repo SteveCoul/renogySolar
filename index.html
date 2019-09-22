@@ -36,7 +36,7 @@
 	}
 
 	function main() {
-		for ( i = 1; i < 3; i++ ) {
+		for ( i = 1; i < 256; i++ ) {
 			name = "http://" + window.location.hostname + ":" + (32700+i) + "/data";
 			var req = new XMLHttpRequest();
 			req.addEventListener( "load", addcontroller );
