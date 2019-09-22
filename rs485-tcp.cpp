@@ -11,6 +11,68 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include "common.hpp"
+
+static
+void transact( int client_fd, int serial_fd, int wait_time ) {
+	usleep(wait_time);
+
+	for (;;) {
+		struct pollfd pfd[2];
+		pfd[0].fd = client_fd;
+		pfd[0].events = POLLIN | POLLHUP | POLLERR;
+		pfd[0].revents = 0;
+		pfd[1].fd = serial_fd;
+		pfd[1].events = POLLIN | POLLHUP | POLLERR;
+		pfd[1].revents = 0;
+		if ( poll( pfd, 2, -1 ) < 0 ) {
+			fprintf( stderr, "Poll error? [%s]\n", strerror(errno) );
+		} else {
+			unsigned char buffer[1024];
+			int len;
+
+			if ( pfd[0].revents & POLLIN ) {
+				len = read( client_fd, buffer, sizeof(buffer) );
+				if ( len == 0 ) break;	// client closed
+				if ( len < 0 ) {
+					fprintf( stderr, "client read error [%s]\n", strerror(errno) );
+					break;
+				}
+
+				if ( write( serial_fd, buffer, len ) != len ) {
+					fprintf( stderr, "serial write problemette\n" );
+				}
+			}
+			if ( pfd[0].revents & POLLERR ) {
+				printf("client error\n");
+			}
+			if ( pfd[0].revents & POLLHUP ) {
+				printf("client hungup\n");
+			}
+			if ( pfd[1].revents & POLLIN ) {
+				printf("serial pollin\n");
+				len = read( serial_fd, buffer, sizeof(buffer) );
+				if ( len < 0 ) {
+					fprintf( stderr, "serial read error [%s]\n", strerror(errno) );
+					break;
+				}
+
+				if ( write( client_fd, buffer, len ) != len ) {
+					fprintf( stderr, "client write problemette\n" );
+				}
+			}
+			if ( pfd[1].revents & POLLERR ) {
+				printf("serial error\n");
+			}
+			if ( pfd[1].revents & POLLHUP ) {
+				printf("serial hungup\n");
+			}
+		}
+	}
+
+	usleep(wait_time);
+}
+
 int main( int argc, char** argv ) {
 	int rc = 0;
 
@@ -59,103 +121,32 @@ int main( int argc, char** argv ) {
 			} else if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
 				fprintf( stderr, "Failed iflush : %s\n", strerror(errno) );
 			} else {
-				m_server_fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
+				m_server_fd = createTCPServerSocket( port );
 				if ( m_server_fd < 0 ) {
 					fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
 					rc = 5;
 				} else {
-					int opt = 1;
-					if ( setsockopt( m_server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int) ) < 0 ) {
-						fprintf( stderr, "Failed to set server socket reuseaddr [%s]\n", strerror(errno) );
-						rc = 6;
-					} else {
+					while(1) {		// No way or need to quit atm
+
+						printf("Server Waiting for client...\n");
 						struct sockaddr_in	sai;
+						socklen_t sai_len = sizeof(sai);
 						memset( &sai, 0, sizeof(sai) );
-						sai.sin_family = AF_INET;
-						sai.sin_port = htons( port );
-						sai.sin_addr.s_addr = htonl( INADDR_ANY );
-						if ( bind( m_server_fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
-							fprintf( stderr, "Failed to bind server socket [%s]\n", strerror(errno) );
-							rc = 7;
-						} else if ( listen( m_server_fd, 1 ) < 0 ) {
-							fprintf( stderr, "Server wont listen [%s]\n", strerror(errno) );
-						} else {
-							while(1) {		// No way or need to quit atm
+						int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
+						if ( client_fd < 0 ) {
+							fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
+						}  else {
+							printf("  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
 
-								printf("Server Waiting for client...\n");
-								socklen_t sai_len = sizeof(sai);
-								memset( &sai, 0, sizeof(sai) );
-								int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
-								if ( client_fd < 0 ) {
-									fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
-								}  else {
-									printf("  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
-
-									if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
-										fprintf( stderr, "Failed iflush : %s\n", strerror(errno) );
-										// We won't quit - just means the client may get some unexpected responses for a bit. shrug.
-									}
-
-									usleep(wait_time);
-
-									for (;;) {
-										struct pollfd pfd[2];
-										pfd[0].fd = client_fd;
-										pfd[0].events = POLLIN | POLLHUP | POLLERR;
-										pfd[0].revents = 0;
-										pfd[1].fd = m_serial_fd;
-										pfd[1].events = POLLIN | POLLHUP | POLLERR;
-										pfd[1].revents = 0;
-										if ( poll( pfd, 2, -1 ) < 0 ) {
-											fprintf( stderr, "Poll error? [%s]\n", strerror(errno) );
-										} else {
-											unsigned char buffer[1024];
-											int len;
-
-											if ( pfd[0].revents & POLLIN ) {
-												len = read( client_fd, buffer, sizeof(buffer) );
-												if ( len == 0 ) break;	// client closed
-												if ( len < 0 ) {
-													fprintf( stderr, "client read error [%s]\n", strerror(errno) );
-													break;
-												}
-
-												if ( write( m_serial_fd, buffer, len ) != len ) {
-													fprintf( stderr, "serial write problemette\n" );
-												}
-											}
-											if ( pfd[0].revents & POLLERR ) {
-												printf("client error\n");
-											}
-											if ( pfd[0].revents & POLLHUP ) {
-												printf("client hungup\n");
-											}
-											if ( pfd[1].revents & POLLIN ) {
-												printf("serial pollin\n");
-												len = read( m_serial_fd, buffer, sizeof(buffer) );
-												if ( len < 0 ) {
-													fprintf( stderr, "serial read error [%s]\n", strerror(errno) );
-													break;
-												}
-
-												if ( write( client_fd, buffer, len ) != len ) {
-													fprintf( stderr, "client write problemette\n" );
-												}
-											}
-											if ( pfd[1].revents & POLLERR ) {
-												printf("serial error\n");
-											}
-											if ( pfd[1].revents & POLLHUP ) {
-												printf("serial hungup\n");
-											}
-										}
-									}
-
-									printf("  Client close\n");
-									close( client_fd );
-									usleep(wait_time);
-								}
+							if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
+								fprintf( stderr, "Failed iflush : %s\n", strerror(errno) );
+								// We won't quit - just means the client may get some unexpected responses for a bit. shrug.
 							}
+
+							transact( client_fd, m_serial_fd, wait_time );
+
+							printf("  Client close\n");
+							close( client_fd );
 						}
 					}
 					close( m_server_fd );
