@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+<link rel="stylesheet" type="text/css" href="style.css">
 	<SCRIPT>
 
 		var first_update = 1;
@@ -62,69 +63,69 @@
 	</SCRIPT>
 </HEAD>
 <BODY onload="update();">
-	<H1 ID="title">Loading...</H1>
+	<H2 ID="title">Loading...</H1>
 
 	<TABLE>
 		<TR>
 				<TD>
-					<TABLE border="1">
+					<TABLE>
 						<TR>
-							<TH/>
-							<TH>PV Maximum Rating</TH>
-							<TH>PV Status</TH>
+							<TH class="tableaxislabel"/>
+							<TH class="tableaxislabel">PV Maximum Rating</TH>
+							<TH class="tableaxislabel">PV Status</TH>
 						</TR>
 						<TR>
-							<TD>Voltage</TD>
-							<TD> <P ID="rated_voltage"/> </TD>
-							<TD> <P ID="now_voltage"/> </TD>
+							<TD class="tableaxislabel">Voltage</TD>
+							<TD class="tablevalue"> <P ID="rated_voltage"/> </TD>
+							<TD class="tablevalue"> <P ID="now_voltage"/> </TD>
 						</TR>
 						<TR>
-							<TD>Amps</TD>
-							<TD> <P ID="rated_current"/> </TD>
-							<TD> <P ID="now_current"/> </TD>
+							<TD class="tableaxislabel">Amps</TD>
+							<TD class="tablevalue"> <P ID="rated_current"/> </TD>
+							<TD class="tablevalue"> <P ID="now_current"/> </TD>
 						</TR>
 						<TR>
-							<TD>Watts</TD>
-							<TD> <P ID="rated_power"/> </TD>
-							<TD> <P ID="now_power"/> </TD>
-						</TR>
-					</TABLE>
-				</TD>
-				<TD>
-				</TD>
-				<TD>
-					<TABLE border="1">
-						<TR><TH COLSPAN="2">Battery</TH></TR>
-						<TR>
-							<TD>Voltage</TD>
-							<TD> <P ID="battery_voltage"/> </TD>
-						</TR>
-						<TR>
-							<TD>Current</TD>
-							<TD> <P ID="battery_current"/> </TD>
-						</TR>
-						<TR>
-							<TD>State Of Charge</TD>
-							<TD> <P ID="battery_state_of_charge"/> </TD>
+							<TD class="tableaxislabel">Watts</TD>
+							<TD class="tablevalue"> <P ID="rated_power"/> </TD>
+							<TD class="tablevalue"> <P ID="now_power"/> </TD>
 						</TR>
 					</TABLE>
 				</TD>
 				<TD>
 				</TD>
 				<TD>
-					<TABLE border="1">
-						<TR><TH COLSPAN="2">Power Generation</TH></TR>
+					<TABLE>
+						<TR><TH class="tableaxislabel" COLSPAN="2">Battery</TH></TR>
 						<TR>
-							<TD>Today</TD>
-							<TD> <P ID="today"/></TD>
+							<TD class="tableaxislabel">Voltage</TD>
+							<TD class="tablevalue"> <P ID="battery_voltage"/> </TD>
 						</TR>
 						<TR>
-							<TD>This Month</TD>
-							<TD> <P ID="this_month"/></TD>
+							<TD class="tableaxislabel">Current</TD>
+							<TD class="tablevalue"> <P ID="battery_current"/> </TD>
 						</TR>
 						<TR>
-							<TD>This Year</TD>
-							<TD> <P ID="this_year"/></TD>
+							<TD class="tableaxislabel">State Of Charge</TD>
+							<TD class="tablevalue"> <P ID="battery_state_of_charge"/> </TD>
+						</TR>
+					</TABLE>
+				</TD>
+				<TD>
+				</TD>
+				<TD>
+					<TABLE>
+						<TR><TH COLSPAN="2" class="tableaxislabel">Power Generation</TH></TR>
+						<TR>
+							<TD class="tableaxislabel">Today</TD>
+							<TD class="tablevalue"> <P ID="today"/></TD>
+						</TR>
+						<TR>
+							<TD class="tableaxislabel">This Month</TD>
+							<TD class="tablevalue"> <P ID="this_month"/></TD>
+						</TR>
+						<TR>
+							<TD class="tableaxislabel">This Year</TD>
+							<TD class="tablevalue"> <P ID="this_year"/></TD>
 						</TR>
 					</TABLE>
 				</TD>

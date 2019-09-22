@@ -1,0 +1,29 @@
+
+body {	
+	background-color: #FFFFFF;
+	color: #4488CC;
+	font-family: Arial;
+}
+
+th {
+	border: none;
+}
+
+td {
+	padding-left: 5px;
+	padding-right: 5px;
+	border: none;
+}
+
+.tableaxislabel {
+	background-image: linear-gradient( to bottom right, #FFFFFF, #CCCCCC );
+	font-size: 20px;
+	color: #4488CC;
+}
+
+.tablevalue {
+	text-align: right;
+	font-size: 20px;
+	color: #224488;
+}
+

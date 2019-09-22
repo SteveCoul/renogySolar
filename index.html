@@ -1,5 +1,6 @@
 <HTML>
 <HEAD>
+<link rel="stylesheet" type="text/css" href="style.css">
 <SCRIPT>
 
 	function addcontroller() {
@@ -54,8 +55,10 @@
 		var total = 0.0
 		list.forEach(	function(e) {
 							arr = e.contentDocument.getElementById("now_power");
-							power = parseFloat( arr.innerHTML.split(' ')[0] );
-							total += power;
+							if ( arr.innerHTML ) {
+								power = parseFloat( arr.innerHTML.split(' ')[0] );
+								total += power;
+							}
 						} );
 		total = total.toFixed(2);
 
@@ -67,6 +70,8 @@
 </SCRIPT>
 </HEAD>
 <BODY onload="main();">
+	<H1>Solar Farm Status</H1>
+	<HR>
 	<DIV ID="controllers"></DIV>
 	<HR>
 	<H2 ID="total_power"></H2>
