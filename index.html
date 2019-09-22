@@ -50,9 +50,8 @@
 	}
 
 	function doTotals() {
-		console.log("updating totals");
-		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
 		var total = 0.0
+		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
 		list.forEach(	function(e) {
 							arr = e.contentDocument.getElementById("now_power");
 							if ( arr.innerHTML ) {
@@ -61,8 +60,18 @@
 							}
 						} );
 		total = total.toFixed(2);
+		document.getElementById("total_power").innerHTML = "Total PV Power " + total + " W";
 
-		document.getElementById("total_power").innerHTML = "Total PV Power " + total + " KwH";
+		total = 0.0
+		list.forEach(	function(e) {
+							arr = e.contentDocument.getElementById("today");
+							if ( arr.innerHTML ) {
+								power = parseFloat( arr.innerHTML.split(' ')[0] );
+								total += power;
+							}
+						} );
+		total = total.toFixed(2);
+		document.getElementById("total_today").innerHTML = "Total Generated Today " + total + " KwH";
 
 		window.setTimeout( "doTotals();", 1234 );
 	}
@@ -75,6 +84,7 @@
 	<DIV ID="controllers"></DIV>
 	<HR>
 	<H2 ID="total_power"></H2>
+	<H2 ID="total_today"></H2>
 </BODY>
 </HTML>
 
