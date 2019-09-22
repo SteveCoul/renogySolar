@@ -2,31 +2,49 @@
 <HEAD>
 	<SCRIPT>
 
-		function doupdate() {
+		var first_update = 1;
 
+		function getField( xml, section, subsection ) {
+			var node = xml.getElementsByTagName( section )[0];
+			return node.getElementsByTagName( subsection )[0].firstChild.data;
+		}
+
+		function getField2( xml, section, subsection ) {
+			var n = parseFloat( getField( xml, section, subsection ) ).toFixed(2);
+			return n;
+		}
+
+		function set( name, value ) {
+			document.getElementById( name ).innerHTML = value;
+		}
+
+		function doupdate() {
 
 			var test = this.responseXML.getElementsByTagName("controller")[0];
 			document.getElementById("title").innerHTML = "Charge Controller Address " + test.getAttribute("id");
 
-			test = this.responseXML.getElementsByTagName("pv_array_rating")[0];
-			var rated_voltage = test.getElementsByTagName("voltage")[0].firstChild.data;
-			var rated_current = test.getElementsByTagName("current")[0].firstChild.data;
-			var rated_power = test.getElementsByTagName("power")[0].firstChild.data;
-	
-			document.getElementById("rated_voltage").innerHTML = rated_voltage + " volts";		
-			document.getElementById("rated_current").innerHTML = rated_current + " current";		
-			document.getElementById("rated_power").innerHTML = rated_power + " power";		
+			set( "rated_voltage", getField2( this.responseXML, "pv_array_rating", "voltage" ) + " v");
+			set( "rated_current", getField2( this.responseXML, "pv_array_rating", "current" ) + " a");
+			set( "rated_power",   getField2( this.responseXML, "pv_array_rating", "power" ) + " w");
 
-			test = this.responseXML.getElementsByTagName("pv_array_now")[0];
-			var now_voltage = test.getElementsByTagName("voltage")[0].firstChild.data;
-			var now_current = test.getElementsByTagName("current")[0].firstChild.data;
-			var now_power = test.getElementsByTagName("power")[0].firstChild.data;
-	
-			document.getElementById("now_voltage").innerHTML = now_voltage + " volts";		
-			document.getElementById("now_current").innerHTML = now_current + " current";		
-			document.getElementById("now_power").innerHTML = now_current + " power";		
+			set( "now_voltage", getField2( this.responseXML, "pv_array_now", "voltage" ) + " v");
+			set( "now_current", getField2( this.responseXML, "pv_array_now", "current" ) + " a");
+			set( "now_power",   getField2( this.responseXML, "pv_array_now", "power" ) + " w");
 
-//			window.setTimeout( update, 1234 );
+			set( "battery_voltage", 		getField2( this.responseXML, "battery", "voltage" ) + " v");
+			set( "battery_current", 		getField2( this.responseXML, "battery", "current" ) + " a");
+			set( "battery_state_of_charge", getField2( this.responseXML, "battery", "state_of_charge" ) + " %");
+
+			set( "today", 					getField2( this.responseXML, "generation", "today" ) + " KwH");
+			set( "this_month", 				getField2( this.responseXML, "generation", "this_month" ) + " KwH");
+			set( "this_year", 				getField2( this.responseXML, "generation", "this_year" ) + " KwH");
+
+			if ( first_update == 1 ) {
+				first_update = 0;
+				window.top.postMessage( document.location.search.substring(1), "*" );
+			}
+
+			window.setTimeout( update, 1234 );
 		}
 
 		function update() {
@@ -45,14 +63,73 @@
 </HEAD>
 <BODY onload="update();">
 	<H1 ID="title">Loading...</H1>
-	<H2 ID="rating">PV Ratings</H2>
-	<P ID="rated_voltage"/>
-	<P ID="rated_current"/>
-	<P ID="rated_power"/>
-	<H2 ID="Current">Current PV</H2>
-	<P ID="now_voltage"/>
-	<P ID="now_current"/>
-	<P ID="now_power"/>
+
+	<TABLE>
+		<TR>
+				<TD>
+					<TABLE border="1">
+						<TR>
+							<TH/>
+							<TH>PV Maximum Rating</TH>
+							<TH>PV Status</TH>
+						</TR>
+						<TR>
+							<TD>Voltage</TD>
+							<TD> <P ID="rated_voltage"/> </TD>
+							<TD> <P ID="now_voltage"/> </TD>
+						</TR>
+						<TR>
+							<TD>Amps</TD>
+							<TD> <P ID="rated_current"/> </TD>
+							<TD> <P ID="now_current"/> </TD>
+						</TR>
+						<TR>
+							<TD>Watts</TD>
+							<TD> <P ID="rated_power"/> </TD>
+							<TD> <P ID="now_power"/> </TD>
+						</TR>
+					</TABLE>
+				</TD>
+				<TD>
+				</TD>
+				<TD>
+					<TABLE border="1">
+						<TR><TH COLSPAN="2">Battery</TH></TR>
+						<TR>
+							<TD>Voltage</TD>
+							<TD> <P ID="battery_voltage"/> </TD>
+						</TR>
+						<TR>
+							<TD>Current</TD>
+							<TD> <P ID="battery_current"/> </TD>
+						</TR>
+						<TR>
+							<TD>State Of Charge</TD>
+							<TD> <P ID="battery_state_of_charge"/> </TD>
+						</TR>
+					</TABLE>
+				</TD>
+				<TD>
+				</TD>
+				<TD>
+					<TABLE border="1">
+						<TR><TH COLSPAN="2">Power Generation</TH></TR>
+						<TR>
+							<TD>Today</TD>
+							<TD> <P ID="today"/></TD>
+						</TR>
+						<TR>
+							<TD>This Month</TD>
+							<TD> <P ID="this_month"/></TD>
+						</TR>
+						<TR>
+							<TD>This Year</TD>
+							<TD> <P ID="this_year"/></TD>
+						</TR>
+					</TABLE>
+				</TD>
+		</TR>
+	</TABLE>
 </BODY>
 <HTML>
 

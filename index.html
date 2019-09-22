@@ -1,6 +1,52 @@
 <HTML>
-<BODY>
-<H1>Howdy</H1>
+<HEAD>
+<SCRIPT>
+
+	function addcontroller() {
+		node = document.createElement("IFRAME");
+		node.setAttribute("width", "100%" );
+		node.setAttribute("scrolling", "no" );
+		node.setAttribute("name", this.responseURL );
+		node.setAttribute("src", "subframe.html?arg=" + this.responseURL );
+
+		var list = Array.from( document.body.childNodes );
+		list.push( node );
+	
+		list.sort(	function( a,b ) {
+						if ( a.src > b.src ) return -1;
+						return 1;
+					} );
+
+		while ( child = document.body.firstChild ) child.remove();
+		list.forEach( function(e) { document.body.insertBefore( e, document.body.firstChild ); } );
+	}
+
+	function update( url ) {
+		list = Array.from( document.body.getElementsByTagName("iframe") );
+		list.forEach(	function(e) {
+							source = e.getAttribute("src").split('?')[1];
+							if ( source == url ) {
+								h = e.contentDocument.body.scrollHeight;
+								e.height = h;
+							}
+						} );
+	}
+
+	function main() {
+		for ( i = 1; i < 3; i++ ) {
+			name = "http://" + window.location.hostname + ":" + (32700+i) + "/data";
+			var req = new XMLHttpRequest();
+			req.addEventListener( "load", addcontroller );
+			req.open( "GET", name );
+			req.send();
+		}
+
+		window.addEventListener( 'message', function(p) { update(p.data); }, false );
+	}
+	
+</SCRIPT>
+</HEAD>
+<BODY onload="main();">
 </BODY>
 </HTML>
 
