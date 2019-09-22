@@ -1,0 +1,58 @@
+<HTML>
+<HEAD>
+	<SCRIPT>
+
+		function doupdate() {
+
+
+			var test = this.responseXML.getElementsByTagName("controller")[0];
+			document.getElementById("title").innerHTML = "Charge Controller Address " + test.getAttribute("id");
+
+			test = this.responseXML.getElementsByTagName("pv_array_rating")[0];
+			var rated_voltage = test.getElementsByTagName("voltage")[0].firstChild.data;
+			var rated_current = test.getElementsByTagName("current")[0].firstChild.data;
+			var rated_power = test.getElementsByTagName("power")[0].firstChild.data;
+	
+			document.getElementById("rated_voltage").innerHTML = rated_voltage + " volts";		
+			document.getElementById("rated_current").innerHTML = rated_current + " current";		
+			document.getElementById("rated_power").innerHTML = rated_power + " power";		
+
+			test = this.responseXML.getElementsByTagName("pv_array_now")[0];
+			var now_voltage = test.getElementsByTagName("voltage")[0].firstChild.data;
+			var now_current = test.getElementsByTagName("current")[0].firstChild.data;
+			var now_power = test.getElementsByTagName("power")[0].firstChild.data;
+	
+			document.getElementById("now_voltage").innerHTML = now_voltage + " volts";		
+			document.getElementById("now_current").innerHTML = now_current + " current";		
+			document.getElementById("now_power").innerHTML = now_current + " power";		
+
+//			window.setTimeout( update, 1234 );
+		}
+
+		function update() {
+
+			var url = document.location.search.substring(1);
+			var arr = url.split('&');
+	
+			url = arr[0].split('=')[1];
+
+			var req = new XMLHttpRequest();
+			req.addEventListener( "load", doupdate );
+			req.open( "GET", url );
+			req.send();
+		}
+	</SCRIPT>
+</HEAD>
+<BODY onload="update();">
+	<H1 ID="title">Loading...</H1>
+	<H2 ID="rating">PV Ratings</H2>
+	<P ID="rated_voltage"/>
+	<P ID="rated_current"/>
+	<P ID="rated_power"/>
+	<H2 ID="Current">Current PV</H2>
+	<P ID="now_voltage"/>
+	<P ID="now_current"/>
+	<P ID="now_power"/>
+</BODY>
+<HTML>
+
