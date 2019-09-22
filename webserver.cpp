@@ -73,6 +73,7 @@ int main( int argc, char** argv ) {
 						write( client_fd, buffer, d );
 						if ( d != sizeof(buffer) ) break;
 					}
+					close( fd );
 				}	
 			}
 		}
