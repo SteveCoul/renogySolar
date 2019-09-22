@@ -4,12 +4,14 @@
 
 	function addcontroller() {
 		node = document.createElement("IFRAME");
+		node.setAttribute("frameborder", "0" );
 		node.setAttribute("width", "100%" );
 		node.setAttribute("scrolling", "no" );
 		node.setAttribute("name", this.responseURL );
 		node.setAttribute("src", "subframe.html?arg=" + this.responseURL );
 
-		var list = Array.from( document.body.childNodes );
+		var div = document.getElementById("controllers");
+		var list = Array.from( div.childNodes );
 		list.push( node );
 	
 		list.sort(	function( a,b ) {
@@ -17,12 +19,12 @@
 						return 1;
 					} );
 
-		while ( child = document.body.firstChild ) child.remove();
-		list.forEach( function(e) { document.body.insertBefore( e, document.body.firstChild ); } );
+		while ( child = div.firstChild ) child.remove();
+		list.forEach( function(e) { div.insertBefore( e, div.firstChild ); } );
 	}
 
 	function update( url ) {
-		list = Array.from( document.body.getElementsByTagName("iframe") );
+		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
 		list.forEach(	function(e) {
 							source = e.getAttribute("src").split('?')[1];
 							if ( source == url ) {
@@ -42,11 +44,32 @@
 		}
 
 		window.addEventListener( 'message', function(p) { update(p.data); }, false );
+
+		doTotals();
+	}
+
+	function doTotals() {
+		console.log("updating totals");
+		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
+		var total = 0.0
+		list.forEach(	function(e) {
+							arr = e.contentDocument.getElementById("now_power");
+							power = parseFloat( arr.innerHTML.split(' ')[0] );
+							total += power;
+						} );
+		total = total.toFixed(2);
+
+		document.getElementById("total_power").innerHTML = "Total PV Power " + total + " KwH";
+
+		window.setTimeout( "doTotals();", 1234 );
 	}
 	
 </SCRIPT>
 </HEAD>
 <BODY onload="main();">
+	<DIV ID="controllers"></DIV>
+	<HR>
+	<H2 ID="total_power"></H2>
 </BODY>
 </HTML>
 
