@@ -7,7 +7,7 @@ clean::
 	rm -f webserver.cpp
 	
 controller_read: controller_read.cpp
-	cc -o $@ $^
+	cc -g -o $@ $^
 clean::
 	rm -f controller_read
 

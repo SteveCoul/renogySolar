@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -235,6 +236,8 @@ int main( int argc, char** argv ) {
 	int id = atoi( argv[3] );
 	int myport = atoi(argv[4]);
 
+	signal( SIGPIPE, SIG_IGN );
+
 	m_server_fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 	if ( m_server_fd < 0 ) {
 		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
@@ -319,11 +322,6 @@ int main( int argc, char** argv ) {
 
 						p = buffer;
 
-						p+=sprintf(p,"HTTP/1.0 200 OK\r\n");
-						p+=sprintf(p,"Access-Control-Allow-Origin: *\r\n");
-						p+=sprintf(p,"Connection: close\r\n");
-						p+=sprintf(p,"\r\n");
-
 						p+=sprintf(p,"<controller id=\"%d\">\n", id );
 
 						p+=sprintf(p,"\t<pv_array_rating>\n");
@@ -377,8 +375,19 @@ int main( int argc, char** argv ) {
 
 						p+=sprintf( p, "</controller>\n");
 
-						write( client_fd, buffer, p-buffer );
-						close(client_fd);
+						int body_len = p-buffer;
+
+						char headers[65536];
+						p = headers;
+						p+=sprintf(p,"HTTP/1.0 200 OK\r\n");
+						p+=sprintf(p,"Access-Control-Allow-Origin: *\r\n");
+						p+=sprintf(p,"Content-Length: %d\r\n", body_len );
+						p+=sprintf(p,"\r\n");
+
+						write( client_fd, headers, p-headers );
+						write( client_fd, buffer, body_len );
+
+//						close( client_fd );
 					}
 				}
 			}
