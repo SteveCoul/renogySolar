@@ -1,5 +1,5 @@
 
-all:	rs485-tcp controller_read webserver
+all:	rs485-tcp controller_read webserver history
 
 webserver: webserver.cpp common.cpp
 	cc -o $@ $^
@@ -15,4 +15,9 @@ rs485-tcp: rs485-tcp.cpp common.cpp
 	cc -o $@ $^
 clean::
 	rm -f rs485-tcp
+
+history: history.cpp common.cpp modbus.cpp
+	cc -o $@ $^ -lsqlite3
+clean::
+	rm -f history
 
