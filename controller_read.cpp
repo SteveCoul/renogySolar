@@ -17,7 +17,7 @@
 
 #include "common.hpp"
 #include "modbus.hpp"
-
+#include "renogy.hpp"
 
 int main( int argc, char** argv ) {
 
@@ -26,8 +26,8 @@ int main( int argc, char** argv ) {
 	int m_server_fd;
 	int client_fd;
 
-	int rs485port = atoi( argv[2] );
-	const char* rs485addr = argv[1];
+	int rport = atoi( argv[2] );
+	const char* raddr = argv[1];
 	int id = atoi( argv[3] );
 	int myport = atoi(argv[4]);
 
@@ -63,7 +63,7 @@ int main( int argc, char** argv ) {
 				unsigned int	local_seconds = tm->tm_sec;
 				int	local_time = ( local_hour * 3600 ) + ( local_minute * 60 ) + local_seconds;
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_REGISTER | 0x9013, 1, 3, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_RTC_MINUTE_SECOND, 1, 3, value ); 
 
 				unsigned int	remote_year = value[2].rawHI + 2000;
 				unsigned int	remote_month = value[2].rawLO;
@@ -91,7 +91,7 @@ int main( int argc, char** argv ) {
 					value[1].raw = ( value[1].rawHI << 8 ) | value[1].rawLO;
 					value[2].raw = ( value[2].rawHI << 8 ) | value[2].rawLO;
 			
-					(void)modbusWriteRawVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_REGISTER | 0x9013, 3, value );
+					(void)modbusWriteRawVariable( raddr, rport, id, RENOGY_RTC_MINUTE_SECOND, 3, value );
 				}
 
 				unsigned int tmp;
@@ -105,50 +105,50 @@ int main( int argc, char** argv ) {
 				p+=sprintf(p,"<controller id=\"%d\">\n", id );
 
 				p+=sprintf(p,"\t<pv_array_rating>\n");
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3000, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_VOLTAGE, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 			
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3001, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_CURRENT, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
 				
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3002, 100, 2, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_POWER, 100, 2, value ); 
 				tmp = ( value[0].raw << 16 ) | value[1].raw;
 				p+=sprintf(p,"\t\t<power>%f</power>\n", value[0].asFloat );
 				p+=sprintf(p,"\t</pv_array_rating>\n");
 				
 				p+=sprintf(p,"\t<pv_array_now>\n");
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3100, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 				
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3101, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3102, 100, 2, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_POWER, 100, 2, value ); 
 				tmp = ( value[0].raw << 16 ) | value[1].raw;
 				p+=sprintf(p,"\t\t<power>%f</power>\n", value[0].asFloat );
 				p+=sprintf(p,"\t</pv_array_now>\n");
 				
 				p+=sprintf(p,"\t<battery>\n");
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3104, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_VOLTAGE, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3105, 100, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_CHARGING_CURRENT, 100, 1, value ); 
 				p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x311A, 1, 1, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_STATE_OF_CHARGE, 1, 1, value ); 
 				p+=sprintf(p,"\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat );
 				p+=sprintf(p,"\t</battery>\n");
 
 				p+=sprintf(p,"\t<generation>\n");
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x330C, 100, 2, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_TODAY_L, 100, 2, value ); 
 				tmp = ( value[1].raw << 16 ) | value[0].raw;
 				p+=sprintf(p,"\t\t<today>%f</today>\n", ((float)tmp)/100.0f );
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x330E, 100, 2, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_MONTH_L, 100, 2, value ); 
 				tmp = ( value[1].raw << 16 ) | value[0].raw;
 				p+=sprintf(p,"\t\t<this_month>%f</this_month>\n", ((float)tmp)/100.0f );
 
-				(void)modbusReadVariable( rs485addr, rs485port, id, MODBUS_VT_INPUT_CONTACT | 0x3310, 100, 2, value ); 
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_YEAR_L, 100, 2, value ); 
 				tmp = ( value[1].raw << 16 ) | value[0].raw;
 				p+=sprintf(p,"\t\t<this_year>%f</this_year>\n", ((float)tmp)/100.0f );
 				p+=sprintf(p,"\t</generation>\n");
