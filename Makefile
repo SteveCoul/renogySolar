@@ -6,7 +6,7 @@ webserver: webserver.cpp common.cpp
 clean::
 	rm -f webserver.cpp
 	
-controller_read: controller_read.cpp common.cpp
+controller_read: controller_read.cpp common.cpp modbus.cpp
 	cc -o $@ $^
 clean::
 	rm -f controller_read

@@ -63,3 +63,25 @@ void waitForTCPHangup( int fd ) {
 	}
 }
 
+int connectTCP( const char* ip, unsigned short port ) {
+	int fd = -1;
+
+	fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
+	if ( fd < 0 ) {
+		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
+	} else {
+		struct sockaddr_in	sai;
+		memset( &sai, 0, sizeof(sai) );
+		sai.sin_family = AF_INET;
+		sai.sin_port = htons( port );
+		sai.sin_addr.s_addr = inet_addr(ip);
+		if ( connect( fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
+			fprintf( stderr, "Failed to connect [%s]\n", strerror(errno) );
+			close( fd );
+			fd = -1;
+		}
+	}
+	return fd;
+}
+
+

@@ -3,6 +3,7 @@
 
 int createTCPServerSocket( unsigned short port );
 void waitForTCPHangup( int fd );
+int connectTCP( const char* ip, unsigned short port );
 
 #endif
 
