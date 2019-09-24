@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <time.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -21,44 +22,296 @@
 #include "modbus.hpp"
 #include "renogy.hpp"
 
-int main( int argc, char** argv ) {
 
+class Table {
+public:
+	Table( const char* name )	: m_window(1)
+								, m_expiry(1)
+								, m_cascade_time(1)
+								, m_cascade_target(0)
+								{
+		char c[128];
+		m_name = strdup( name );
+		snprintf( c, sizeof(c), "CREATE TABLE IF NOT EXISTS %s( id INT, timestamp DATETIME, input_voltage FLOAT(24), input_current FLOAT(24) );", name );
+		sqlExec( c );
+
+		m_next = c_list;
+		c_list = this;
+	}
+
+	~Table() {
+		free( (void*)m_name );
+	}
+
+	void addRecord( time_t now, int id, float input_voltage, float input_current ) {
+		char timestamp[64];
+		mktimestamp( timestamp, now );
+		syslog( LOG_INFO, "%s->%s( %s, %d, %f, %f )\n", m_name, __FUNCTION__, timestamp, id, input_voltage, input_current );
+
+	
+		char c[512];
+		snprintf( c, sizeof(c), "DELETE FROM %s WHERE id=%d and timestamp='%s';", m_name, id, timestamp );
+		sqlExec( c );
+
+		snprintf( c, sizeof(c), "INSERT INTO %s VALUES ( %d, '%s', %f, %f );", m_name, id, timestamp, input_voltage, input_current );
+		sqlExec( c );
+
+		mktimestamp( timestamp, now - m_expiry );
+		snprintf( c, sizeof(c), "DELETE FROM %s WHERE id=%d and timestamp<'%s';", m_name, id, timestamp );
+		sqlExec( c );
+
+		if ( m_cascade_target ) {
+			sqlite3_stmt* statement;
+			time_t new_time = ( now / m_cascade_time ) * m_cascade_time;
+			char start_time[64];
+			mktimestamp( start_time, new_time );
+			char end_time[64];
+			mktimestamp( end_time, new_time + m_cascade_time - 1 );
+			syslog( LOG_INFO, "Get averages from %s to %s\n", start_time, end_time );
+
+			float total_voltage = 0.0f;
+			float total_current = 0.0f;
+			int count = 0;
+	
+			snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
+
+			if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
+				syslog( LOG_ERR, "Failed prepare" );
+			}
+
+			syslog( LOG_INFO, "%s : using %s %s %d", c, start_time, end_time, id );
+
+			if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
+				assert(0);
+			}
+
+			if ( sqlite3_bind_text( statement, 2, end_time, strlen( end_time), 0 ) != SQLITE_OK ) {
+				assert(0);
+			}
+
+			if ( sqlite3_bind_int( statement, 3, id ) != SQLITE_OK ) {
+				assert(0);
+			}
+
+			while ( sqlite3_step(statement) == SQLITE_ROW ) {
+				float v = (float)sqlite3_column_double( statement, 2 );
+				float c = (float)sqlite3_column_double( statement, 3 );
+				syslog( LOG_INFO, "    add %f, %f", v, c );
+				total_voltage+=v;
+				total_current+=c;
+				count++;
+			}
+
+			sqlite3_finalize(statement);
+
+			m_cascade_target->addRecord( new_time, id, total_voltage / count, total_current / count );
+
+		}
+	}
+
+	void setWindow( time_t t ) {
+		m_window = t;
+	}
+
+	void setExpiry( time_t t ) {
+		m_expiry = t;
+	}
+
+	void cascade( time_t time_mod, class Table* to ) {
+		m_cascade_time = time_mod;
+		m_cascade_target = to;
+	}
+
+	char* toXML( int id ) {
+		char* result = NULL;
+
+		/* query all between latest time and time-m_window and output as XML */
+		char start_time[64];
+		mktimestamp( start_time, time(NULL) - m_window );
+		char end_time[64];
+		mktimestamp( end_time, time(NULL) );
+		char c[256];
+
+		sqlite3_stmt* statement;
+	
+		snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
+
+		if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
+			syslog( LOG_ERR, "Failed prepare" );
+		}
+
+		if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
+			assert(0);
+		}
+
+		if ( sqlite3_bind_text( statement, 2, end_time, strlen( end_time), 0 ) != SQLITE_OK ) {
+			assert(0);
+		}
+
+		if ( sqlite3_bind_int( statement, 3, id ) != SQLITE_OK ) {
+			assert(0);
+		}
+
+		mprintf( &result, "<xml>\n" );
+
+		while ( sqlite3_step(statement) == SQLITE_ROW ) {
+			mprintf( &result, "<entry time='%s'>\n", sqlite3_column_text( statement, 1 ) );
+			mprintf( &result, "<voltage>%f</voltage>\n", (float)sqlite3_column_double( statement, 2 ) );
+			mprintf( &result, "<current>%f</current>\n", (float)sqlite3_column_double( statement, 3 ) );
+			mprintf( &result, "</entry>\n");
+		}
+
+		mprintf( &result, "</xml>\n" );
+		sqlite3_finalize(statement);
+
+		return result;
+	}
+
+private:
+	const char*		m_name;
+	time_t			m_window;
+	time_t			m_expiry;
+	time_t			m_cascade_time;
+	class Table*	m_cascade_target;
+	class Table*	m_next;
+public:
+
+	static
+	Table* get( const char* name ) {
+		Table* head = c_list;
+		while ( head != NULL ) {
+			if ( strcmp( name, head->m_name ) == 0 ) break;
+			head=head->m_next;
+		}
+		return head;
+	}
+
+	static
+	void mktimestamp( char* timestamp, time_t now ) {
+		struct tm* tm;
+		tm = localtime( &now );
+		sprintf( timestamp, "%04d-%02d-%02d %02d:%02d:%02d",
+							tm->tm_year+1900,
+							tm->tm_mon+1,
+							tm->tm_mday,
+							tm->tm_hour,
+							tm->tm_min,
+							tm->tm_sec);
+	}
+
+	static
+	void sqlExec( const char* command ) {
+		char *err_msg;
+
+		syslog( LOG_DEBUG, command );
+		int rc = sqlite3_exec( c_db, command, 0, 0, &err_msg );
+		if ( rc != SQLITE_OK ) {
+			fprintf( stderr, "error %s\n", err_msg );
+			sqlite3_free( err_msg );
+			assert(0);
+		}
+	}
+
+	static
+	int cinit( const char* database ) {
+		if ( sqlite3_open( database, &c_db ) != SQLITE_OK ) {
+			syslog( LOG_CRIT, "Failed to open database" );
+			return -1;
+		}
+		return 0;
+	}
+
+private:
+	static	sqlite3*		c_db;
+	static class Table*		c_list;
+};
+sqlite3*		Table::c_db;
+class Table*	Table::c_list = 0;
+
+int main( int argc, char** argv ) {
 	int rport = atoi( argv[2] );
 	const char* raddr = argv[1];
-	const char* database = argv[3];
 	/* args 4..argc are id's to read and log*/
-	int rc;
-	sqlite3* db;
-	sqlite3_stmt* statement;
 
-	rc = sqlite3_open( database, &db );
-	if ( rc != SQLITE_OK ) {
-		fprintf( stderr, "Failed to open database\n");
-		assert(0);
-	}
+	int server = createTCPServerSocket( atoi( argv[3] ) );
 
-	const char* sql = 	"DROP TABLE IF EXISTS Recent;"
-						"CREATE TABLE Recent( id INT, timestamp DATETIME, input_voltage FLOAT(24), input_current FLOAT(24) );"
-						"DROP TABLE IF EXISTS Minutes;"
-						"CREATE TABLE Minutes( id INT, timestamp DATETIME, input_voltage FLOAT(24), input_current FLOAT(24) );";
+	openlog( NULL, LOG_PID, LOG_USER );
 
-	char *err_msg;
+	Table::cinit( argv[4] );
 
-	rc = sqlite3_exec( db, sql, 0, 0, &err_msg );
-	if ( rc != SQLITE_OK ) {
-		fprintf( stderr, "error %s\n", err_msg );
-		sqlite3_free( err_msg );
-		sqlite3_close( db );
-		assert(0);
-	}
+	Table* t_recent = new Table( "Recent" );
+	Table* t_minutes = new Table( "Minutes" );
+	Table* t_hours = new Table( "Hours" );
+	
+	t_recent->setExpiry( (time_t)(2*60) );
+	t_recent->setWindow( (time_t)60 );
+	t_recent->cascade( (time_t)60, t_minutes );
+
+	t_minutes->setExpiry( (time_t)(2*60*60) );
+	t_minutes->setWindow( (time_t)(1*60*60) );
+	t_minutes->cascade( (time_t)(1*60*60), t_hours );
+
+	t_hours->setExpiry( (time_t)(48*60*60) );
+	t_hours->setWindow( (time_t)(24*60*60) );
 
 	for (;;) {
-		sleep(1);
-		for ( int i = 4; i < argc; i++ ) {
+		struct pollfd pfd;
+		memset( &pfd, 0, sizeof(pfd) );
+		pfd.fd = server;
+		pfd.events = POLLIN;
+		(void)poll( &pfd, 1, 1000 );
+		if ( pfd.revents ) {
+			int client_fd = tcpAccept( server );
+			char buffer[1024];
+			int i = 0;
+			for (;;) {
+				int ret = read( client_fd, buffer+i, 1 );
+				if ( buffer[i] == '\n' ) break;
+				if ( buffer[i] == '\r' ) break;
+				i++;
+			}
+			buffer[i] = 0;
+printf("GET '%s'\n", buffer );
+			i = 0;
+			while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) ) i++;
+			while( ( buffer[i] == ' ' ) || ( buffer[i] == '\t' ) ) i++;
+			while( buffer[i] == '/' ) i++;
+	
+			char *name = buffer+i;
+				
+			while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) && ( buffer[i] != '?' ) ) i++;
+			buffer[i] = 0;
+
+			char* p = name;
+			while( ( p[0] != '/' ) && ( p[0] != '\0' ) ) p++;
+			char* clientid = name;
+			p[0] = '\0';
+			name = p+1;
+
+			Table* tab = Table::get( name );
+			if ( tab == NULL ) {
+				printf("bad table\n");
+				sprintf( buffer, "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 0\r\n\r\n" );
+				write( client_fd, buffer, strlen(buffer) );
+			} else {
+				char* xml = tab->toXML( atoi(clientid) );
+				sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", strlen(xml) );
+				write( client_fd, buffer, strlen(buffer) );
+				write( client_fd, xml, strlen(xml) );
+				free( (void*)xml );
+			}
+
+			waitForTCPHangup( client_fd );
+
+			close( client_fd );
+		}
+
+		/* process */
+		for ( int i = 5; i < argc; i++ ) {
 			modbus_data_value_t value[3];
 			int id = atoi( argv[i] );
 
-			printf("Read %d\n", id );
+			syslog( LOG_INFO, "------- read device %d -------", id );
 
 			time_t	now;
 			struct tm* tm;
@@ -79,128 +332,9 @@ int main( int argc, char** argv ) {
 			(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
 			float input_current = value[0].asFloat;
 
-			char command[1024];
-
-			/* add current record to recent */
-			snprintf( command, sizeof(command), "INSERT INTO Recent VALUES ( %d, '%s', %f, %f );", id, timestamp, input_voltage, input_current );
-			printf("%s\n", command );
-			if ( sqlite3_exec( db, command, 0, 0, &err_msg ) != SQLITE_OK ) {
-				fprintf( stderr, "error %s\n", err_msg );
-				sqlite3_free( err_msg );
-			}
-
-			/* trim recent table so nothing older than say 2 minutes */
-
-			(void)time(&now);
-			now = now - 120;
-			tm = localtime( &now );
-			snprintf( timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
-							tm->tm_year+1900,
-							tm->tm_mon+1,
-							tm->tm_mday,
-							tm->tm_hour,
-							tm->tm_min,
-							tm->tm_sec);
-			snprintf( command, sizeof(command), "DELETE FROM Recent WHERE timestamp<'%s' AND ID=%d;", timestamp, id );
-			printf("%s\n", command );
-			if ( sqlite3_exec( db, command, 0, 0, &err_msg ) != SQLITE_OK ) {
-				fprintf( stderr, "error %s\n", err_msg );
-				sqlite3_free( err_msg );
-			}
-
-			/* select everything from the current minute and make some values */
-			(void)time(&now);
-			tm = localtime( &now );
-			snprintf( timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
-							tm->tm_year+1900,
-							tm->tm_mon+1,
-							tm->tm_mday,
-							tm->tm_hour,
-							tm->tm_min,
-							0 );
-			snprintf( timestamp2, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
-							tm->tm_year+1900,
-							tm->tm_mon+1,
-							tm->tm_mday,
-							tm->tm_hour,
-							tm->tm_min,
-							59 );
-			snprintf(command,sizeof(command), "SELECT * FROM Recent WHERE timestamp>=? AND timestamp<=? AND id=?;");
-
-			printf("%s (%s,%s)\n", command, timestamp, timestamp2 );
-			if ( sqlite3_prepare( db, command, -1, &statement, NULL ) != SQLITE_OK ) {
-				fprintf( stderr, "error\n" );
-			}
-
-			(void)sqlite3_reset( statement );
-
-			if ( sqlite3_bind_text( statement, 1, timestamp, strlen(timestamp), SQLITE_STATIC ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			if ( sqlite3_bind_text( statement, 2, timestamp2, strlen(timestamp2)+1, 0 ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			if ( sqlite3_bind_int( statement, 3, id ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			float total_voltage = 0.0f;
-			float total_current = 0.0f;
-			int count = 0;
-			while ( sqlite3_step(statement) == SQLITE_ROW ) {
-				total_voltage += (float)sqlite3_column_double( statement, 2 );
-				total_current += (float)sqlite3_column_double( statement, 3 );
-				count++;
-			}
-			total_voltage /= count;
-			total_current /= count;
-
-			sqlite3_finalize(statement);
-
-			/* Write the averages to the minutes database */
-
-			/* I wanted to do INSERT or UPDATE, but I couldn't get count to work so I could tell which to do! */
-
-			snprintf( command, sizeof(command), "DELETE FROM Minutes WHERE timestamp='%s' AND ID=%d;", timestamp, id );
-			printf("%s\n", command );
-			if ( sqlite3_exec( db, command, 0, 0, &err_msg ) != SQLITE_OK ) {
-				fprintf( stderr, "error %s\n", err_msg );
-				sqlite3_free( err_msg );
-			}
-			snprintf( command, sizeof(command), "INSERT INTO Minutes VALUES( %d, '%s', %f, %f );", id, timestamp, total_voltage, total_current );
-			printf("%s\n", command );
-			if ( sqlite3_exec( db, command, 0, 0, &err_msg ) != SQLITE_OK ) {
-				fprintf( stderr, "error %s\n", err_msg );
-				sqlite3_free( err_msg );
-			}
-
-			/* Drop from the minute, by minute table anything over an hour old */
-			(void)time(&now);
-			now = now - 3600;
-			tm = localtime( &now );
-			snprintf( timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
-							tm->tm_year+1900,
-							tm->tm_mon+1,
-							tm->tm_mday,
-							tm->tm_hour,
-							tm->tm_min,
-							tm->tm_sec);
-			snprintf( command, sizeof(command), "DELETE FROM Minutes WHERE timestamp<'%s' AND ID=%d;", timestamp, id );
-			printf("%s\n", command );
-			if ( sqlite3_exec( db, command, 0, 0, &err_msg ) != SQLITE_OK ) {
-				fprintf( stderr, "error %s\n", err_msg );
-				sqlite3_free( err_msg );
-			}
-
-			/* select everything from the minutes table that matches the current hour, average and store in hour table */
-			/* wipe everything after 168 hours from the hours table ( one week history hourly ) */
-
-			/* consider a daily average table and wipe after say 10 years? */
-
-			/* Then we need a webserver to query, xml-ize and output each table */
+			t_recent->addRecord( time(NULL), id, input_voltage, input_current );
 		}
 	}
+	return 0;
 }
 
