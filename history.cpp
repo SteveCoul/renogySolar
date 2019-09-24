@@ -22,7 +22,6 @@
 #include "modbus.hpp"
 #include "renogy.hpp"
 
-
 class Table {
 public:
 	Table( const char* name )	: m_window(1)
@@ -46,7 +45,7 @@ public:
 	void addRecord( time_t now, int id, float input_voltage, float input_current ) {
 		char timestamp[64];
 		mktimestamp( timestamp, now );
-		syslog( LOG_INFO, "%s->%s( %s, %d, %f, %f )\n", m_name, __FUNCTION__, timestamp, id, input_voltage, input_current );
+		log( LOG_INFO, "%s->%s( %s, %d, %f, %f )\n", m_name, __FUNCTION__, timestamp, id, input_voltage, input_current );
 
 	
 		char c[512];
@@ -67,7 +66,7 @@ public:
 			mktimestamp( start_time, new_time );
 			char end_time[64];
 			mktimestamp( end_time, new_time + m_cascade_time - 1 );
-			syslog( LOG_INFO, "Get averages from %s to %s\n", start_time, end_time );
+			log( LOG_INFO, "Get averages from %s to %s\n", start_time, end_time );
 
 			float total_voltage = 0.0f;
 			float total_current = 0.0f;
@@ -76,10 +75,10 @@ public:
 			snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
 
 			if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
-				syslog( LOG_ERR, "Failed prepare" );
+				log( LOG_ERR, "Failed prepare" );
 			}
 
-			syslog( LOG_INFO, "%s : using %s %s %d", c, start_time, end_time, id );
+			log( LOG_INFO, "%s : using %s %s %d", c, start_time, end_time, id );
 
 			if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
 				assert(0);
@@ -96,7 +95,7 @@ public:
 			while ( sqlite3_step(statement) == SQLITE_ROW ) {
 				float v = (float)sqlite3_column_double( statement, 2 );
 				float c = (float)sqlite3_column_double( statement, 3 );
-				syslog( LOG_INFO, "    add %f, %f", v, c );
+				log( LOG_INFO, "    add %f, %f", v, c );
 				total_voltage+=v;
 				total_current+=c;
 				count++;
@@ -137,7 +136,7 @@ public:
 		snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
 
 		if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
-			syslog( LOG_ERR, "Failed prepare" );
+			log( LOG_ERR, "Failed prepare" );
 		}
 
 		if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
@@ -203,7 +202,7 @@ public:
 	void sqlExec( const char* command ) {
 		char *err_msg;
 
-		syslog( LOG_DEBUG, command );
+		log( LOG_DEBUG, command );
 		int rc = sqlite3_exec( c_db, command, 0, 0, &err_msg );
 		if ( rc != SQLITE_OK ) {
 			fprintf( stderr, "error %s\n", err_msg );
@@ -215,7 +214,7 @@ public:
 	static
 	int cinit( const char* database ) {
 		if ( sqlite3_open( database, &c_db ) != SQLITE_OK ) {
-			syslog( LOG_CRIT, "Failed to open database" );
+			log( LOG_CRIT, "Failed to open database" );
 			return -1;
 		}
 		return 0;
@@ -311,7 +310,7 @@ printf("GET '%s'\n", buffer );
 			modbus_data_value_t value[3];
 			int id = atoi( argv[i] );
 
-			syslog( LOG_INFO, "------- read device %d -------", id );
+			log( LOG_INFO, "------- read device %d -------", id );
 
 			time_t	now;
 			struct tm* tm;

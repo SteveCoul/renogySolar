@@ -27,7 +27,7 @@ void transact( int client_fd, int serial_fd, int wait_time ) {
 		pfd[1].events = POLLIN | POLLHUP | POLLERR;
 		pfd[1].revents = 0;
 		if ( poll( pfd, 2, -1 ) < 0 ) {
-			syslog( LOG_WARNING, "Poll error? [%s]\n", strerror(errno) );
+			log( LOG_WARNING, "Poll error? [%s]\n", strerror(errno) );
 		} else {
 			unsigned char buffer[1024];
 			int len;
@@ -36,36 +36,36 @@ void transact( int client_fd, int serial_fd, int wait_time ) {
 				len = read( client_fd, buffer, sizeof(buffer) );
 				if ( len == 0 ) break;	// client closed
 				if ( len < 0 ) {
-					syslog( LOG_WARNING, "client read error [%s]\n", strerror(errno) );
+					log( LOG_WARNING, "client read error [%s]\n", strerror(errno) );
 					break;
 				}
 
 				if ( write( serial_fd, buffer, len ) != len ) {
-					syslog( LOG_WARNING, "serial write problemette\n" );
+					log( LOG_WARNING, "serial write problemette\n" );
 				}
 			}
 			if ( pfd[0].revents & POLLERR ) {
-				syslog( LOG_WARNING, "Client error\n");
+				log( LOG_WARNING, "Client error\n");
 			}
 			if ( pfd[0].revents & POLLHUP ) {
-				syslog( LOG_WARNING, "client hungup\n");
+				log( LOG_WARNING, "client hungup\n");
 			}
 			if ( pfd[1].revents & POLLIN ) {
 				len = read( serial_fd, buffer, sizeof(buffer) );
 				if ( len < 0 ) {
-					syslog( LOG_ERR, "serial read error [%s]\n", strerror(errno) );
+					log( LOG_ERR, "serial read error [%s]\n", strerror(errno) );
 					break;
 				}
 
 				if ( write( client_fd, buffer, len ) != len ) {
-					syslog( LOG_WARNING, "client write problemette\n" );
+					log( LOG_WARNING, "client write problemette\n" );
 				}
 			}
 			if ( pfd[1].revents & POLLERR ) {
-				syslog( LOG_WARNING,"serial error\n");
+				log( LOG_WARNING,"serial error\n");
 			}
 			if ( pfd[1].revents & POLLHUP ) {
-				syslog( LOG_WARNING, "serial hungup\n");
+				log( LOG_WARNING, "serial hungup\n");
 			}
 		}
 	}
@@ -78,10 +78,10 @@ int main( int argc, char** argv ) {
 
 	openlog( NULL, LOG_PID, LOG_USER );
 
-	syslog( LOG_INFO, "Starting" );
+	log( LOG_INFO, "Starting" );
 
 	if ( argc < 2 ) { 
-		syslog( LOG_CRIT, "%s <ttydevicepath>\n", argv[0] );
+		log( LOG_CRIT, "%s <ttydevicepath>\n", argv[0] );
 		return 1;
 	}
 
@@ -100,11 +100,11 @@ int main( int argc, char** argv ) {
 
 	m_serial_fd = ::open( device, O_RDWR | O_NDELAY | O_NOCTTY );
 	if ( m_serial_fd < 0 ) {
-		syslog( LOG_CRIT, "Failed to open %s [%s]\n", device, strerror(errno) );
+		log( LOG_CRIT, "Failed to open %s [%s]\n", device, strerror(errno) );
 		rc = 1;
 	} else {
 		if ( tcgetattr( m_serial_fd, &term ) < 0 ) {
-			syslog( LOG_CRIT, "Failed to get serial config : %s\n", strerror(errno) );
+			log( LOG_CRIT, "Failed to get serial config : %s\n", strerror(errno) );
 			rc = 2;
 		} else {
 			int opt_dtr = TIOCM_DTR;
@@ -114,42 +114,42 @@ int main( int argc, char** argv ) {
 			cfsetispeed( &term, baud );
 			cfsetospeed( &term, baud );
 			if ( tcsetattr( m_serial_fd, TCSANOW, &term ) < 0 ) {
-				syslog( LOG_CRIT, "Failed to set serial config ; %s\n", strerror(errno) );
+				log( LOG_CRIT, "Failed to set serial config ; %s\n", strerror(errno) );
 				rc = 3;
 			} else if ( ::ioctl( m_serial_fd, TIOCMBIS, &opt_dtr ) < 0 ) {
-				syslog( LOG_CRIT, "Failed to set DTR : %s\n", strerror(errno) );
+				log( LOG_CRIT, "Failed to set DTR : %s\n", strerror(errno) );
 				rc = 4;
 			} else if ( ::ioctl( m_serial_fd, TIOCMBIS, &opt_rts ) < 0 ) {
-				syslog( LOG_CRIT, "Failed to set RTS : %s\n", strerror(errno) );
+				log( LOG_CRIT, "Failed to set RTS : %s\n", strerror(errno) );
 				rc = 4;
 			} else if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
-				syslog( LOG_CRIT, "Failed iflush : %s\n", strerror(errno) );
+				log( LOG_CRIT, "Failed iflush : %s\n", strerror(errno) );
 			} else {
 				m_server_fd = createTCPServerSocket( port );
 				if ( m_server_fd < 0 ) {
-					syslog( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
+					log( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
 					rc = 5;
 				} else {
 					while(1) {		// No way or need to quit atm
 
-						syslog( LOG_DEBUG, "Server waiting for client connect" );
+						log( LOG_DEBUG, "Server waiting for client connect" );
 						struct sockaddr_in	sai;
 						socklen_t sai_len = sizeof(sai);
 						memset( &sai, 0, sizeof(sai) );
 						int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
 						if ( client_fd < 0 ) {
-							syslog( LOG_ERR, "accept() failed [%s]\n", strerror(errno) );
+							log( LOG_ERR, "accept() failed [%s]\n", strerror(errno) );
 						}  else {
-							syslog( LOG_DEBUG,"  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
+							log( LOG_DEBUG,"  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
 
 							if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
-								syslog( LOG_WARNING, "Failed iflush : %s\n", strerror(errno) );
+								log( LOG_WARNING, "Failed iflush : %s\n", strerror(errno) );
 								// We won't quit - just means the client may get some unexpected responses for a bit. shrug.
 							}
 
 							transact( client_fd, m_serial_fd, wait_time );
 
-							syslog( LOG_DEBUG, "client closed" );
+							log( LOG_DEBUG, "client closed" );
 							close( client_fd );
 						}
 					}

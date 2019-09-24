@@ -4,12 +4,58 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <sys/poll.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
 #include "common.hpp"
+
+static int LOG_ALERT_enabled = 1;
+static int LOG_CRIT_enabled = 1;
+static int LOG_ERR_enabled = 1;
+static int LOG_WARNING_enabled = 1;
+static int LOG_NOTICE_enabled = 1;
+static int LOG_INFO_enabled = 0;
+static int LOG_DEBUG_enabled = 0;
+
+void log( int level, const char* fmt, ... ) {
+	int output = 0;
+	switch( level ) {
+	case LOG_ALERT:
+		output = LOG_ALERT_enabled;
+		break;
+	case LOG_CRIT:
+		output = LOG_CRIT_enabled;
+		break;
+	case LOG_ERR:
+		output = LOG_ERR_enabled;
+		break;
+	case LOG_WARNING:
+		output = LOG_WARNING_enabled;
+		break;
+	case LOG_NOTICE:
+		output = LOG_NOTICE_enabled;
+		break;
+	case LOG_INFO:
+		output = LOG_INFO_enabled;
+		break;
+	case LOG_DEBUG:
+		output = LOG_DEBUG_enabled;
+		break;
+	default:
+		output = 0;
+		break;
+	}
+
+	if ( output ) {
+		va_list args;
+		va_start( args, fmt );
+		vsyslog( level, fmt, args );
+		va_end( args );
+	}
+}
 
 int mprintf( char** pp, const char* fmt, ... ) {
 	char* n = (char*)malloc(0);
