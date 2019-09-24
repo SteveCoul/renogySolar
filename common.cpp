@@ -1,5 +1,7 @@
 
 #include <errno.h>
+#include <malloc.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,6 +10,31 @@
 #include <netinet/in.h>
 
 #include "common.hpp"
+
+int mprintf( char** pp, const char* fmt, ... ) {
+	char* n = (char*)malloc(0);
+	va_list args;
+
+	va_start( args, fmt );
+	int nl = vsnprintf( n, 0, fmt, args );
+	va_end( args );
+
+	int ol = 0;
+	if ( pp[0] != NULL ) ol = strlen( pp[0] );
+
+	pp[0] = (char*)realloc( pp[0], ol + nl + 1024 );
+	va_start( args, fmt );
+	int rc = vsprintf( pp[0] + ol, fmt, args );
+	va_end( args );
+	return rc;
+}
+
+int tcpAccept( int server ) {
+	struct sockaddr_in sai;
+	socklen_t sai_len = sizeof(sai);
+	memset( &sai, 0, sizeof(sai) );
+	return accept( server, (struct sockaddr*)&sai, &sai_len );
+}
 
 int createTCPServerSocket( unsigned short port ) {
 	int server_fd;
