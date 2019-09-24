@@ -32,10 +32,7 @@ int main( int argc, char** argv ) {
 		rc = 5;
 	} else {
 		while(1) {		// No way or need to quit atm
-			struct sockaddr_in sai;
-			socklen_t sai_len = sizeof(sai);
-			memset( &sai, 0, sizeof(sai) );
-			int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
+			int client_fd = tcpAccept( m_server_fd );
 			if ( client_fd < 0 ) {
 				fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
 			} else {
