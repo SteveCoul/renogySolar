@@ -19,6 +19,29 @@
 			document.getElementById( name ).innerHTML = value;
 		}
 
+		function doneAllUpdates() {
+			if ( first_update == 1 ) {
+				first_update = 1;		// HACK FOR NOW, 
+				window.top.postMessage( document.location.search.substring(1), "*" );
+			}
+			window.setTimeout( update, 1234 );
+		}
+
+		function doupdaterecent() {
+			document.getElementById("graphic_recent").innerHTML = this.responseText;
+			doneAllUpdates();
+		}
+
+		function doupdateminutes() {
+			document.getElementById("graphic_minutes").innerHTML = this.responseText;
+			doneAllUpdates();
+		}
+
+		function doupdatehours() {
+			document.getElementById("graphic_hours").innerHTML = this.responseText;
+			doneAllUpdates();
+		}
+
 		function doupdate() {
 
 			var test = this.responseXML.getElementsByTagName("controller")[0];
@@ -40,12 +63,23 @@
 			set( "this_month", 				getField2( this.responseXML, "generation", "this_month" ) + " KwH");
 			set( "this_year", 				getField2( this.responseXML, "generation", "this_year" ) + " KwH");
 
-			if ( first_update == 1 ) {
-				first_update = 0;
-				window.top.postMessage( document.location.search.substring(1), "*" );
-			}
+			var url = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Recent";
+			var req = new XMLHttpRequest();
+			req.addEventListener( "load", doupdaterecent );
+			req.open( "GET", url );
+			req.send();
 
-			window.setTimeout( update, 1234 );
+			var url2 = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Minutes";
+			var req2 = new XMLHttpRequest();
+			req2.addEventListener( "load", doupdateminutes );
+			req2.open( "GET", url2 );
+			req2.send();
+
+			var url3 = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Hours";
+			var req3 = new XMLHttpRequest();
+			req3.addEventListener( "load", doupdatehours );
+			req3.open( "GET", url3 );
+			req3.send();
 		}
 
 		function update() {
@@ -131,6 +165,13 @@
 				</TD>
 		</TR>
 	</TABLE>
+
+	<TABLE><TR>
+		<IMG ID="graphic_recent"></IMG>
+		<IMG ID="graphic_minutes"></IMG>
+		<IMG ID="graphic_hours"></IMG>
+	</TR</TABLE>
+	
 </BODY>
 <HTML>
 
