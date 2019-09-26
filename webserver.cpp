@@ -44,7 +44,7 @@ int main( int argc, char** argv ) {
 					i++;
 				}
 				buffer[i] = 0;
-printf("%s\n", buffer );
+
 				i = 0;
 				while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) ) i++;
 				while( ( buffer[i] == ' ' ) || ( buffer[i] == '\t' ) ) i++;
