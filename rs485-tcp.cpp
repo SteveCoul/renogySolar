@@ -89,7 +89,7 @@ int main( int argc, char** argv ) {
 	speed_t	baud		=	B115200;
 	unsigned int port	=	32700;
 	struct termios	term;
-	int wait_time = 500;
+	int wait_time = 750;
 
 	// FIXME : parse arguments to change config etc.
 	// FIXME : probably want configuration for data and stop size, and parity - for now assuming default of 8,N,1
