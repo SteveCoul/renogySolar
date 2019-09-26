@@ -3,6 +3,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 	<SCRIPT>
 
+		var controller_id = 0;
 		var relative_graph = 0;
 
 		function makeGraph( title, xlabel, ylabel, canvas, xaxis, yaxis ) {
@@ -192,6 +193,9 @@
 		function doupdate() {
 
 			var test = this.responseXML.getElementsByTagName("controller")[0];
+
+			controller_id = test.getAttribute("id");
+
 			document.getElementById("title").innerHTML = "Charge Controller Address " + test.getAttribute("id");
 
 			set( "rated_voltage", getField2( this.responseXML, "pv_array_rating", "voltage" ) + " v");
@@ -210,11 +214,6 @@
 			set( "this_month", 				getField2( this.responseXML, "generation", "this_month" ) + " KwH");
 			set( "this_year", 				getField2( this.responseXML, "generation", "this_year" ) + " KwH");
 
-			var test = this.responseXML.getElementsByTagName("controller")[0];
-			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Recent", doupdaterecent );
-			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Minutes", doupdateminutes );
-			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Hours", doupdatehours );
-
 			doneProcess();
 		}
 
@@ -223,6 +222,11 @@
 			var arr = url.split('&');
 			url = arr[0].split('=')[1];
 			process( url, doupdate );
+			if ( controller_id != 0 ) {
+				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Recent", doupdaterecent );
+				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Minutes", doupdateminutes );
+				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Hours", doupdatehours );
+			}
 		}
 
 		var stored_width;
