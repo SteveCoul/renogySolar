@@ -47,6 +47,15 @@
 			width -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
 			ctx.restore();
 
+			//--
+
+			var w1 = ctx.measureText( xaxis[0] ).width;
+			xaxis.forEach( function(e) { var v = ctx.measureText( e ).width; if ( v > w1 ) w1 = v; } );
+	
+			w1 = w1 * 1.1;	
+			height -= w1;	
+
+			//--
 			//-- calculate range
 			var maxYValue;
 			var minYValue;
@@ -71,29 +80,35 @@
 				gradient.addColorStop( 0.5, "#FFFF80" );
 				gradient.addColorStop( 1, "#FF8080" );
 			}
+
 			//--
 			var top_label = parseFloat( maxYValue ).toFixed(0);
 			var bottom_label = parseFloat( minYValue ).toFixed(0);
 
-			var w1 = ctx.measureText( top_label ).width;
+			w1 = ctx.measureText( top_label ).width;
 			var w2 = ctx.measureText( bottom_label ).width;
 
 			if ( w1 < w2 ) w1 = w2;
 
 			ctx.textAlign = "left";
 			ctx.fillText( top_label, left, top + size.fontBoundingBoxAscent );
-			ctx.fillText( bottom_label, left, top+height-size.fontBoundingBoxAscent );
+			ctx.fillText( bottom_label, left, top+height-size.fontBoundingBoxDescent );
+
+			ctx.lineWidth = 1;
+			ctx.strokeStyle = "black";
+			ctx.beginPath();
+			ctx.moveTo( left+(w1*1.05), top );
+			ctx.lineTo( left+(w1*1.05), top+height-1 );
+			ctx.stroke();
+			ctx.closePath();
 
 			w1 = w1 * 1.1;
 
 			left += w1;
 			width -= w1;
-			//--
-
-			//--
 
 //			ctx.fillStyle = "red";
-//			ctx.fillRect( left, top, width, height );
+//			ctx.fillRect( left, t*1.05)op, width, height );
 
 			var x = left;
 			var dx = width / xaxis.length;
@@ -111,6 +126,25 @@
 				ctx.rect( x, y, dx, h );
 				ctx.stroke();
 				ctx.closePath();
+
+				ctx.save();
+				size = ctx.measureText( ylabel );
+
+				var draw = 1;
+				if ( ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent ) > dx ) {
+					if ( i & 1 ) {
+						draw=0;
+					}
+				}
+
+				if ( draw ) {
+					ctx.fillStyle = "#4040CC";
+					ctx.rotate( -Math.PI / 2 );
+					ctx.textAlign = "right";
+					ctx.fillText( xaxis[i], -(top+height), x+size.fontBoundingBoxAscent );	// todo - adjust alignment.
+					ctx.restore();
+				}
+
 				x+=dx;
 			}
 			
@@ -158,7 +192,8 @@
 		}
 
 		function decodeTime( t ) {
-			return t;
+			var rc = t.substring(5);
+			return rc.replace('-', '/' );
 		}
 
 		function generateGraph( element, xml, title, xlabel, ylabel ) {
@@ -334,11 +369,11 @@
 				</TD>
 		</TR>
 		<TR>
-			<TD ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
-			<TD ID="graphic_minutes_parent"><CANVAS ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_minutes_parent"><CANVAS ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
-			<TD ID="graphic_hours_parent"><CANVAS ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_hours_parent"><CANVAS ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
 		</TR>
 	</TABLE>
 </BODY>
