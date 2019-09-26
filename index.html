@@ -3,60 +3,73 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 <SCRIPT>
 
-	function addcontroller() {
-		node = document.createElement("IFRAME");
-		node.setAttribute("frameborder", "0" );
-		node.setAttribute("width", "100%" );
-		node.setAttribute("scrolling", "no" );
-		node.setAttribute("name", this.responseURL );
-		node.setAttribute("src", "subframe.html?arg=" + this.responseURL );
-
-		var div = document.getElementById("controllers");
-		var list = Array.from( div.childNodes );
-		list.push( node );
-	
-		list.sort(	function( a,b ) {
-						if ( a.src > b.src ) return -1;
-						return 1;
-					} );
-
-		while ( child = div.firstChild ) child.remove();
-		list.forEach( function(e) { div.insertBefore( e, div.firstChild ); } );
-	}
+	var	number_of_controllers_to_look_for	=	2;
+	var controller_good_addresses			=	0;
+	var controller_bad_addresses			=	0;
+	var known_controller_urls 				=	new Array();
 
 	function update( url ) {
-		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
+		var list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
 		list.forEach(	function(e) {
-							source = e.getAttribute("src").split('?')[1];
+							var source = e.getAttribute("src").split('?')[1];
 							if ( source == url ) {
-								h = e.contentDocument.body.scrollHeight;
+								var h = e.contentDocument.body.scrollHeight;
 								e.height = h;
 							}
 						} );
 	}
 
+	function addAllControllers() {
+		known_controller_urls.sort( function( a,b ) { return ( a < b ) ? -1 : 1; } );
+
+		var head = document.createElement("DIV");
+		head.setAttribute("id", "controllers" );
+		known_controller_urls.forEach(  function(e) {
+											var node = document.createElement("IFRAME");
+											node.setAttribute("frameborder", "0" );
+											node.setAttribute("width", "100%" );
+											node.setAttribute("scrolling", "no" );
+											node.setAttribute("name", e );
+											node.setAttribute("src", "subframe.html?arg=" + e );
+											head.appendChild( node );
+										} );
+		document.getElementById("controller_parent").appendChild( head );
+		window.addEventListener( 'message', function(p) { update(p.data); }, false );
+		doTotals();
+	}
+
 	function main() {
-		for ( i = 1; i < 256; i++ ) {
+		for ( var i = 1; i < (number_of_controllers_to_look_for+1); i++ ) {
 			var name = "http://" + window.location.hostname + ":" + (32700+i) + "/data";
 			var req = new XMLHttpRequest();
-			req.addEventListener( "load", addcontroller );
+			req.onerror = function() {
+				controller_bad_addresses++;
+				if ( ( controller_bad_addresses + controller_good_addresses ) == number_of_controllers_to_look_for ) {
+					addAllControllers();
+				}
+			};
+			req.onload = function() {
+				known_controller_urls.push( this.responseURL );
+				controller_good_addresses++;
+				if ( ( controller_bad_addresses + controller_good_addresses ) == number_of_controllers_to_look_for ) {
+					addAllControllers();
+				}
+			}
 			req.open( "GET", name );
 			req.send();
 		}
-
-		window.addEventListener( 'message', function(p) { update(p.data); }, false );
-
-		doTotals();
 	}
 
 	function doTotals() {
 		var total = 0.0
-		list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
+		var list = Array.from( document.getElementById("controllers").getElementsByTagName("iframe") );
 		list.forEach(	function(e) {
-							arr = e.contentDocument.getElementById("now_power");
-							if ( arr.innerHTML ) {
-								power = parseFloat( arr.innerHTML.split(' ')[0] );
-								total += power;
+							var arr = e.contentDocument.getElementById("now_power");
+							if ( arr ) {
+								if ( arr.innerHTML ) {
+									var power = parseFloat( arr.innerHTML.split(' ')[0] );
+									total += power;
+								}
 							}
 						} );
 		total = total.toFixed(2);
@@ -64,10 +77,12 @@
 
 		total = 0.0
 		list.forEach(	function(e) {
-							arr = e.contentDocument.getElementById("today");
-							if ( arr.innerHTML ) {
-								power = parseFloat( arr.innerHTML.split(' ')[0] );
-								total += power;
+							var arr = e.contentDocument.getElementById("today");
+							if ( arr ) {
+								if ( arr.innerHTML ) {
+									var power = parseFloat( arr.innerHTML.split(' ')[0] );
+									total += power;
+								}
 							}
 						} );
 		total = total.toFixed(2);
@@ -81,7 +96,7 @@
 <BODY onload="main();">
 	<H1>Solar Farm Status</H1>
 	<HR>
-	<DIV ID="controllers"></DIV>
+	<DIV ID="controller_parent"></DIV>
 	<HR>
 	<H2 ID="total_power"></H2>
 	<H2 ID="total_today"></H2>

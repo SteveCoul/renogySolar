@@ -3,7 +3,144 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 	<SCRIPT>
 
+		var relative_graph = 0;
+
+		function makeGraph( title, xlabel, ylabel, canvas, xaxis, yaxis ) {
+
+			var ctx = canvas.getContext("2d");
+			var canvas_width = canvas.scrollWidth;
+			var canvas_height = canvas.scrollHeight;
+
+			var left = 0;
+			var top = 0;
+			var width = canvas_width;
+			var height = canvas_height;
+
+			var gradient;
+
+			gradient = ctx.createLinearGradient(0,0, 0, canvas_height);
+			gradient.addColorStop( 0, "#666666" );
+			gradient.addColorStop( 1, "#FFFFFF" );
+			ctx.fillStyle = gradient;
+			ctx.fillRect( 0, 0, canvas_width, canvas_height );
+
+			ctx.font = "" + ( canvas_height / 20 ) + "pt Arial";
+			ctx.textAlign = "center";
+			var size = ctx.measureText( title );	
+			ctx.fillStyle = "#2020CC";
+			ctx.fillText( title, canvas_width/2, size.emHeightAscent );
+			top += ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			height -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+
+			ctx.fillStyle = "#4040CC";
+
+			size = ctx.measureText( xlabel );
+			ctx.fillText( xlabel, canvas_width / 2, canvas_height - size.fontBoundingBoxDescent );
+			height -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+
+			ctx.save();
+			size = ctx.measureText( ylabel );
+			ctx.rotate( -Math.PI / 2 );
+			ctx.fillText( ylabel, -(canvas_height/2), size.emHeightAscent );
+			left += ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			width -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			ctx.restore();
+
+			//-- calculate range
+			var maxYValue;
+			var minYValue;
+
+			if ( relative_graph ) {
+				minYValue = yaxis[0];
+				maxYValue = yaxis[0];
+				for ( var i = 0; i < yaxis.length; i++ ) {
+					if ( yaxis[i] > maxYValue ) maxYValue = yaxis[i];
+					if ( yaxis[i] < minYValue ) minYValue = yaxis[i];
+				}
+	
+				gradient = ctx.createLinearGradient(0,0,0,height);
+				gradient.addColorStop( 0, "#000080" );
+				gradient.addColorStop( 1, "#8080FF" );
+			} else {
+				minYValue = 0;
+				maxYValue = 400.0;		// HACK - this needs to come from XML for PV Maximum Power rating
+	
+				gradient = ctx.createLinearGradient(0,0,0,height);
+				gradient.addColorStop( 0, "#80FF80" );
+				gradient.addColorStop( 0.5, "#FFFF80" );
+				gradient.addColorStop( 1, "#FF8080" );
+			}
+			//--
+			var top_label = parseFloat( maxYValue ).toFixed(0);
+			var bottom_label = parseFloat( minYValue ).toFixed(0);
+
+			var w1 = ctx.measureText( top_label ).width;
+			var w2 = ctx.measureText( bottom_label ).width;
+
+			if ( w1 < w2 ) w1 = w2;
+
+			ctx.textAlign = "left";
+			ctx.fillText( top_label, left, top + size.fontBoundingBoxAscent );
+			ctx.fillText( bottom_label, left, top+height-size.fontBoundingBoxAscent );
+
+			w1 = w1 * 1.1;
+
+			left += w1;
+			width -= w1;
+			//--
+
+			//--
+
+//			ctx.fillStyle = "red";
+//			ctx.fillRect( left, top, width, height );
+
+			var x = left;
+			var dx = width / xaxis.length;
+
+			for ( var i = 0; i < yaxis.length; i++ ) {
+				ctx.fillStyle = gradient;
+				var h = ( ( ( yaxis[i] - minYValue ) * height ) / (maxYValue-minYValue) )
+				var y = top + height - 1 - h;
+
+				ctx.fillRect( x, y, dx, h );
+
+				ctx.lineWidth = 1;
+				ctx.strokeStyle = "black";
+				ctx.beginPath();
+				ctx.rect( x, y, dx, h );
+				ctx.stroke();
+				ctx.closePath();
+				x+=dx;
+			}
+			
+		}
+
+		// ------------------------------------
+
 		var first_update = 1;
+		var num_processes = 0;
+
+		function doneProcess() {
+			if ( num_processes ) {
+				num_processes--;
+				if ( num_processes == 0 ) {
+					if ( first_update == 1 ) {
+						first_update = 1;		// HACK FOR NOW, 
+						window.top.postMessage( document.location.search.substring(1), "*" );
+					}
+					window.setTimeout( update, 1234 );
+				}
+			}
+		}
+
+		function process( url, action ) {
+			num_processes++;
+			var req = new XMLHttpRequest();
+			req.addEventListener( "load", action );
+			req.addEventListener( "error", doneProcess );
+			req.open( "GET", url );
+			req.send();
+		}
 
 		function getField( xml, section, subsection ) {
 			var node = xml.getElementsByTagName( section )[0];
@@ -19,27 +156,37 @@
 			document.getElementById( name ).innerHTML = value;
 		}
 
-		function doneAllUpdates() {
-			if ( first_update == 1 ) {
-				first_update = 1;		// HACK FOR NOW, 
-				window.top.postMessage( document.location.search.substring(1), "*" );
-			}
-			window.setTimeout( update, 1234 );
+		function decodeTime( t ) {
+			return t;
+		}
+
+		function generateGraph( element, xml, title, xlabel, ylabel ) {
+			var list = Array.from( xml.getElementsByTagName("entry") );
+			var xaxis = new Array();
+			var yaxis = new Array();
+			list.forEach(	function( e ) {
+								var tm 		= e.getAttribute("time");
+								var volts	= e.getElementsByTagName("voltage")[0].firstChild.textContent;
+								var amps	= e.getElementsByTagName("current")[0].firstChild.textContent;
+								xaxis.push( decodeTime( tm ) );
+								yaxis.push( volts * amps );
+							} );
+			makeGraph( title, xlabel, ylabel, document.getElementById(element), xaxis, yaxis );
 		}
 
 		function doupdaterecent() {
-			document.getElementById("graphic_recent").innerHTML = this.responseText;
-			doneAllUpdates();
+			generateGraph( "graphic_recent", this.responseXML, "Last Minute", "time", "power (W)" );
+			doneProcess();
 		}
 
 		function doupdateminutes() {
-			document.getElementById("graphic_minutes").innerHTML = this.responseText;
-			doneAllUpdates();
+			generateGraph( "graphic_minutes", this.responseXML, "Last Hour", "time", "power (W)" );
+			doneProcess();
 		}
 
 		function doupdatehours() {
-			document.getElementById("graphic_hours").innerHTML = this.responseText;
-			doneAllUpdates();
+			generateGraph( "graphic_hours", this.responseXML, "Last Day", "time", "power (W)" );
+			doneProcess();
 		}
 
 		function doupdate() {
@@ -63,43 +210,61 @@
 			set( "this_month", 				getField2( this.responseXML, "generation", "this_month" ) + " KwH");
 			set( "this_year", 				getField2( this.responseXML, "generation", "this_year" ) + " KwH");
 
-			var url = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Recent";
-			var req = new XMLHttpRequest();
-			req.addEventListener( "load", doupdaterecent );
-			req.open( "GET", url );
-			req.send();
+			var test = this.responseXML.getElementsByTagName("controller")[0];
+			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Recent", doupdaterecent );
+			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Minutes", doupdateminutes );
+			process( "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Hours", doupdatehours );
 
-			var url2 = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Minutes";
-			var req2 = new XMLHttpRequest();
-			req2.addEventListener( "load", doupdateminutes );
-			req2.open( "GET", url2 );
-			req2.send();
-
-			var url3 = "http://" + window.location.hostname + ":32900/" + test.getAttribute("id") + "/Hours";
-			var req3 = new XMLHttpRequest();
-			req3.addEventListener( "load", doupdatehours );
-			req3.open( "GET", url3 );
-			req3.send();
+			doneProcess();
 		}
 
 		function update() {
-
 			var url = document.location.search.substring(1);
 			var arr = url.split('&');
-	
 			url = arr[0].split('=')[1];
-
-			var req = new XMLHttpRequest();
-			req.addEventListener( "load", doupdate );
-			req.open( "GET", url );
-			req.send();
+			process( url, doupdate );
 		}
+
+		var stored_width;
+		var stored_height;
+
+		var body_stored_width;
+		var body_stored_height;
+
+		function zoom( what ) {
+			var e = document.getElementById( what );
+
+			if ( document.getElementById( what+"_parent" ).firstChild ) {
+				console.log("zooming");
+				body_stored_width = document.body.scrollWidth;
+				body_stored_height = document.body.scrollHeight;
+				console.log("Saved " + body_stored_width + "x" + body_stored_height );
+				document.getElementById( what+"_parent" ).removeChild( e );
+				document.getElementById("holder").appendChild(e);
+				document.getElementById("holder").style.display="block";
+				document.getElementById("content").style.display="none";	
+				stored_width = e.scrollWidth;
+				stored_height = e.scrollHeight;
+				e.width = body_stored_width;
+				e.height = body_stored_height;
+			} else {
+				console.log("reverting");
+				document.getElementById("holder").removeChild( e );
+				document.getElementById("holder").style.display="none";
+				document.getElementById(what+"_parent").appendChild(e);
+				document.getElementById("content").style.display="block";
+				e.width = stored_width;
+				e.height = stored_height;
+			}
+			//window.top.postMessage( document.location.search.substring(1), "*" );
+		}
+
 	</SCRIPT>
 </HEAD>
 <BODY onload="update();">
 	<H2 ID="title">Loading...</H1>
-
-	<TABLE>
+	<DIV ID="holder" STYLE="display=none;"></DIV>
+	<TABLE ID="content" STYLE="display=block;">
 		<TR>
 				<TD>
 					<TABLE>
@@ -164,14 +329,14 @@
 					</TABLE>
 				</TD>
 		</TR>
+		<TR>
+			<TD ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD></TD>
+			<TD ID="graphic_minutes_parent"><CANVAS ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD></TD>
+			<TD ID="graphic_hours_parent"><CANVAS ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
+		</TR>
 	</TABLE>
-
-	<TABLE><TR>
-		<IMG ID="graphic_recent"></IMG>
-		<IMG ID="graphic_minutes"></IMG>
-		<IMG ID="graphic_hours"></IMG>
-	</TR</TABLE>
-	
 </BODY>
 <HTML>
 
