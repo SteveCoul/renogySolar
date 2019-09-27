@@ -22,7 +22,16 @@
 #include "modbus.hpp"
 #include "renogy.hpp"
 
+class Table;
+typedef void (Table::*callback_fn)( void* param, const char* time, float voltage, float current );
+
 class Table {
+public:
+	struct averaging {
+		int count;
+		float voltage;	
+		float current;
+	};
 public:
 	Table( const char* name )	: m_window(1)
 								, m_expiry(1)
@@ -34,19 +43,25 @@ public:
 		snprintf( c, sizeof(c), "CREATE TABLE IF NOT EXISTS %s( id INT, timestamp DATETIME, input_voltage FLOAT(24), input_current FLOAT(24) );", name );
 		sqlExec( c );
 
+		snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
+
+		if ( sqlite3_prepare( c_db, c, -1, &m_for_each_in_range, NULL ) != SQLITE_OK ) {
+			log( LOG_ERR, "Failed prepare" );
+		}
+
 		m_next = c_list;
 		c_list = this;
 	}
 
 	~Table() {
 		free( (void*)m_name );
+		sqlite3_finalize(m_for_each_in_range);
 	}
 
 	void addRecord( time_t now, int id, float input_voltage, float input_current ) {
 		char timestamp[64];
 		mktimestamp( timestamp, now );
 		log( LOG_INFO, "%s->%s( %s, %d, %f, %f )\n", m_name, __FUNCTION__, timestamp, id, input_voltage, input_current );
-
 	
 		char c[512];
 		snprintf( c, sizeof(c), "DELETE FROM %s WHERE id=%d and timestamp='%s';", m_name, id, timestamp );
@@ -68,42 +83,14 @@ public:
 			mktimestamp( end_time, new_time + m_cascade_time - 1 );
 			log( LOG_INFO, "Get averages from %s to %s\n", start_time, end_time );
 
-			float total_voltage = 0.0f;
-			float total_current = 0.0f;
-			int count = 0;
-	
-			snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
+			struct averaging av;
+			av.count = 0;
+			av.voltage = 0.0f;
+			av.current = 0.0f;
 
-			if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
-				log( LOG_ERR, "Failed prepare" );
-			}
+			forEachInTimeRange( id, start_time, end_time, &Table::doAveraging, &av );
 
-			log( LOG_INFO, "%s : using %s %s %d", c, start_time, end_time, id );
-
-			if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			if ( sqlite3_bind_text( statement, 2, end_time, strlen( end_time), 0 ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			if ( sqlite3_bind_int( statement, 3, id ) != SQLITE_OK ) {
-				assert(0);
-			}
-
-			while ( sqlite3_step(statement) == SQLITE_ROW ) {
-				float v = (float)sqlite3_column_double( statement, 2 );
-				float c = (float)sqlite3_column_double( statement, 3 );
-				log( LOG_INFO, "    add %f, %f", v, c );
-				total_voltage+=v;
-				total_current+=c;
-				count++;
-			}
-
-			sqlite3_finalize(statement);
-
-			m_cascade_target->addRecord( new_time, id, total_voltage / count, total_current / count );
+			m_cascade_target->addRecord( new_time, id, av.voltage / av.count, av.current / av.count );
 
 		}
 	}
@@ -124,46 +111,56 @@ public:
 	char* toXML( int id ) {
 		char* result = NULL;
 
-		/* query all between latest time and time-m_window and output as XML */
 		char start_time[64];
 		mktimestamp( start_time, time(NULL) - m_window );
+
 		char end_time[64];
 		mktimestamp( end_time, time(NULL) );
-		char c[256];
-
-		sqlite3_stmt* statement;
-	
-		snprintf(c,sizeof(c), "SELECT * FROM %s WHERE timestamp>=? AND timestamp<=? AND id=?;", m_name);
-
-		if ( sqlite3_prepare( c_db, c, -1, &statement, NULL ) != SQLITE_OK ) {
-			log( LOG_ERR, "Failed prepare" );
-		}
-
-		if ( sqlite3_bind_text( statement, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
-			assert(0);
-		}
-
-		if ( sqlite3_bind_text( statement, 2, end_time, strlen( end_time), 0 ) != SQLITE_OK ) {
-			assert(0);
-		}
-
-		if ( sqlite3_bind_int( statement, 3, id ) != SQLITE_OK ) {
-			assert(0);
-		}
 
 		mprintf( &result, "<xml>\n" );
+		forEachInTimeRange( id, start_time, end_time, &Table::toXMLcallback, &result );
+		mprintf( &result, "</xml>\n" );
+		return result;
+	}
 
-		while ( sqlite3_step(statement) == SQLITE_ROW ) {
-			mprintf( &result, "<entry time='%s'>\n", sqlite3_column_text( statement, 1 ) );
-			mprintf( &result, "<voltage>%f</voltage>\n", (float)sqlite3_column_double( statement, 2 ) );
-			mprintf( &result, "<current>%f</current>\n", (float)sqlite3_column_double( statement, 3 ) );
-			mprintf( &result, "</entry>\n");
+private:
+
+	void doAveraging( void* param, const char* t, float voltage, float current ) {
+		struct averaging* p = (struct averaging*)param;
+		p->count++;
+		p->voltage += voltage;
+		p->current += current;
+	}
+
+	void toXMLcallback( void* param, const char* t, float voltage, float current ) {
+		mprintf( (char**)param, "<entry time='%s'>\n", t );
+		mprintf( (char**)param, "<voltage>%f</voltage>\n", voltage );
+		mprintf( (char**)param, "<current>%f</current>\n", current );
+		mprintf( (char**)param, "</entry>\n");
+	}
+
+	void forEachInTimeRange( int id, const char* start_time, const char* end_time, callback_fn callback, void* param ) {
+
+		sqlite3_reset( m_for_each_in_range );
+
+		if ( sqlite3_bind_text( m_for_each_in_range, 1, start_time, strlen( start_time ), SQLITE_STATIC ) != SQLITE_OK ) {
+			assert(0);
 		}
 
-		mprintf( &result, "</xml>\n" );
-		sqlite3_finalize(statement);
+		if ( sqlite3_bind_text( m_for_each_in_range, 2, end_time, strlen( end_time), 0 ) != SQLITE_OK ) {
+			assert(0);
+		}
 
-		return result;
+		if ( sqlite3_bind_int( m_for_each_in_range, 3, id ) != SQLITE_OK ) {
+			assert(0);
+		}
+
+		while ( sqlite3_step(m_for_each_in_range) == SQLITE_ROW ) {
+			(this->*callback)(  param, 
+								(const char*)sqlite3_column_text( m_for_each_in_range, 1 ),
+							    (float)sqlite3_column_double( m_for_each_in_range, 2 ),
+							    (float)sqlite3_column_double( m_for_each_in_range, 3 ) );
+		}
 	}
 
 private:
@@ -173,6 +170,7 @@ private:
 	time_t			m_cascade_time;
 	class Table*	m_cascade_target;
 	class Table*	m_next;
+	sqlite3_stmt*	m_for_each_in_range;
 public:
 
 	static
@@ -260,35 +258,27 @@ int main( int argc, char** argv ) {
 		pfd.events = POLLIN;
 		(void)poll( &pfd, 1, 1000 );
 		if ( pfd.revents ) {
-			int client_fd = tcpAccept( server );
 			char buffer[1024];
-			int i = 0;
-			for (;;) {
-				int ret = read( client_fd, buffer+i, 1 );
-				if ( buffer[i] == '\n' ) break;
-				if ( buffer[i] == '\r' ) break;
-				i++;
-			}
-			buffer[i] = 0;
-			i = 0;
-			while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) ) i++;
-			while( ( buffer[i] == ' ' ) || ( buffer[i] == '\t' ) ) i++;
-			while( buffer[i] == '/' ) i++;
-	
-			char *name = buffer+i;
-				
-			while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) && ( buffer[i] != '?' ) ) i++;
-			buffer[i] = 0;
+			int client_fd = tcpAccept( server );
+			char* line = mReadLine( client_fd );
 
-			char* p = name;
-			while( ( p[0] != '/' ) && ( p[0] != '\0' ) ) p++;
-			char* clientid = name;
-			p[0] = '\0';
-			name = p+1;
+			int i = 0;
+			while( ( line[i] != ' ' ) && ( line[i] != '\t' ) ) i++;
+			while( ( line[i] == ' ' ) || ( line[i] == '\t' ) ) i++;
+			while( line[i] == '/' ) i++;
+	
+			char* clientid = line+i;
+			char* name = clientid;
+			while( name[0] != '/' ) name++;
+			name[0] = '\0';
+			name++;
+
+			i = 0;
+			while ( ( name[i] != '\0' ) && ( name[i] != '?' ) && ( name[i] != ' ' ) && ( name[i] != '\t' ) )	i++;
+			name[i] = 0;
 
 			Table* tab = Table::get( name );
 			if ( tab == NULL ) {
-				printf("bad table\n");
 				sprintf( buffer, "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 0\r\n\r\n" );
 				write( client_fd, buffer, strlen(buffer) );
 			} else {
@@ -299,6 +289,7 @@ int main( int argc, char** argv ) {
 				free( (void*)xml );
 			}
 
+			free( (void*)line );
 			waitForTCPHangup( client_fd );
 
 			close( client_fd );

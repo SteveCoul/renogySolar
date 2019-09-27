@@ -36,27 +36,22 @@ int main( int argc, char** argv ) {
 			if ( client_fd < 0 ) {
 				fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
 			} else {
-				char buffer[65536];
-				int i = 0;
-				for (;;) {
-					(void)read( client_fd, buffer+i, 1 );
-					if ( buffer[i] == '\n' ) break;
-					i++;
-				}
-				buffer[i] = 0;
+				char* line = mReadLine( client_fd );
 
-				i = 0;
-				while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) ) i++;
-				while( ( buffer[i] == ' ' ) || ( buffer[i] == '\t' ) ) i++;
-				while( buffer[i] == '/' ) i++;
+				int i = 0;
+
+				while( ( line[i] != ' ' ) && ( line[i] != '\t' ) ) i++;
+				while( ( line[i] == ' ' ) || ( line[i] == '\t' ) ) i++;
+				while( line[i] == '/' ) i++;
 	
-				char *name = buffer+i;
+				char *name = line+i;
 				
-				while( ( buffer[i] != ' ' ) && ( buffer[i] != '\t' ) && ( buffer[i] != '?' ) ) i++;
-				buffer[i] = 0;
+				while( ( line[i] != ' ' ) && ( line[i] != '\t' ) && ( line[i] != '?' ) ) i++;
+				line[i] = 0;
 
 				if ( name[0] == 0 ) name = "index.html";
 
+				char buffer[65536];
 				int fd = open( name, O_RDONLY );
 				if ( fd < 0 ) {
 					sprintf( buffer, "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n" );
@@ -77,6 +72,7 @@ int main( int argc, char** argv ) {
 
 					close( client_fd );
 				}	
+				free((void*)line);
 			}
 		}
 	}
