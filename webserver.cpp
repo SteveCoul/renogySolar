@@ -21,15 +21,12 @@
 int main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
-	int rc;
 	int m_server_fd;
-	int client_fd;
 	int myport = atoi(argv[1]);
 
 	m_server_fd = createTCPServerSocket( myport );
 	if ( m_server_fd < 0 ) {
 		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
-		rc = 5;
 	} else {
 		while(1) {		// No way or need to quit atm
 			int client_fd = tcpAccept( m_server_fd );
@@ -49,15 +46,13 @@ int main( int argc, char** argv ) {
 				while( ( line[i] != ' ' ) && ( line[i] != '\t' ) && ( line[i] != '?' ) ) i++;
 				line[i] = 0;
 
-				if ( name[0] == 0 ) name = "index.html";
-
 				char buffer[65536];
-				int fd = open( name, O_RDONLY );
+				int fd = open( name[0] == '\0' ? "index.html" : name, O_RDONLY );
 				if ( fd < 0 ) {
 					sprintf( buffer, "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n" );
 					write( client_fd, buffer, strlen(buffer) );
 				} else {
-					sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", lseek( fd, 0, SEEK_END ) );
+					sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int) lseek( fd, 0, SEEK_END ) );
 					lseek( fd, 0, SEEK_SET);
 					write( client_fd, buffer, strlen(buffer) );
 					for (;;) {

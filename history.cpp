@@ -75,7 +75,6 @@ public:
 		sqlExec( c );
 
 		if ( m_cascade_target ) {
-			sqlite3_stmt* statement;
 			time_t new_time = ( now / m_cascade_time ) * m_cascade_time;
 			char start_time[64];
 			mktimestamp( start_time, new_time );

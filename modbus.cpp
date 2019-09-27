@@ -159,7 +159,7 @@ int modbusWriteRawVariable( const char* ip, unsigned short port, unsigned int un
 		buffer[len++] = ( (count) >> 8 ) & 0xFF;
 		buffer[len++] = ( (count) ) & 0xFF;
 		buffer[len++] = count * 2;
-		for ( int i = 0; i < count; i++ ) {
+		for ( unsigned int i = 0; i < count; i++ ) {
 			buffer[len++] = data[i].rawHI;
 			buffer[len++] = data[i].rawLO;
 		}

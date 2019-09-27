@@ -22,9 +22,7 @@
 int main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
-	int rc;
 	int m_server_fd;
-	int client_fd;
 
 	int rport = atoi( argv[2] );
 	const char* raddr = argv[1];
@@ -36,7 +34,6 @@ int main( int argc, char** argv ) {
 	m_server_fd = createTCPServerSocket( myport );
 	if ( m_server_fd < 0 ) {
 		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
-		rc = 5;
 	} else {
 		while(1) {		// No way or need to quit atm
 			struct sockaddr_in	sai;
@@ -172,4 +169,5 @@ int main( int argc, char** argv ) {
 			}
 		}
 	}
+	return 0;
 }
