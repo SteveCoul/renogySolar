@@ -16,7 +16,6 @@
 			var top = 0;
 			var width = canvas_width;
 			var height = canvas_height;
-
 			var gradient;
 
 			gradient = ctx.createLinearGradient(0,0, 0, canvas_height);
@@ -30,21 +29,21 @@
 			var size = ctx.measureText( title );	
 			ctx.fillStyle = "#2020CC";
 			ctx.fillText( title, canvas_width/2, size.emHeightAscent );
-			top += ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
-			height -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			top += ( size.emHeightAscent + size.emHeightDescent );
+			height -= ( size.emHeightAscent + size.emHeightDescent );
 
 			ctx.fillStyle = "#4040CC";
 
 			size = ctx.measureText( xlabel );
-			ctx.fillText( xlabel, canvas_width / 2, canvas_height - size.fontBoundingBoxDescent );
-			height -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			ctx.fillText( xlabel, canvas_width / 2, canvas_height - size.emHeightDescent );
+			height -= ( size.emHeightAscent + size.emHeightDescent );
 
 			ctx.save();
 			size = ctx.measureText( ylabel );
 			ctx.rotate( -Math.PI / 2 );
 			ctx.fillText( ylabel, -(canvas_height/2), size.emHeightAscent );
-			left += ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
-			width -= ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent );
+			left += ( size.emHeightAscent + size.emHeightDescent );
+			width -= ( size.emHeightAscent + size.emHeightDescent );
 			ctx.restore();
 
 			//--
@@ -74,7 +73,6 @@
 			} else {
 				minYValue = 0;
 				maxYValue = 400.0;		// HACK - this needs to come from XML for PV Maximum Power rating
-	
 				gradient = ctx.createLinearGradient(0,0,0,height);
 				gradient.addColorStop( 0, "#80FF80" );
 				gradient.addColorStop( 0.5, "#FFFF80" );
@@ -90,9 +88,9 @@
 
 			if ( w1 < w2 ) w1 = w2;
 
-			ctx.textAlign = "left";
-			ctx.fillText( top_label, left, top + size.fontBoundingBoxAscent );
-			ctx.fillText( bottom_label, left, top+height-size.fontBoundingBoxDescent );
+			ctx.textAlign = "right";
+			ctx.fillText( top_label, left+w1, top + size.emHeightAscent );
+			ctx.fillText( bottom_label, left+w1, top+height-size.emHeightDescent );
 
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = "black";
@@ -131,7 +129,7 @@
 				size = ctx.measureText( ylabel );
 
 				var draw = 1;
-				if ( ( size.fontBoundingBoxAscent + size.fontBoundingBoxDescent ) > dx ) {
+				if ( ( size.emHeightAscent + size.emHeightDescent ) > dx ) {
 					if ( i & 1 ) {
 						draw=0;
 					}
@@ -141,7 +139,7 @@
 					ctx.fillStyle = "#4040CC";
 					ctx.rotate( -Math.PI / 2 );
 					ctx.textAlign = "right";
-					ctx.fillText( xaxis[i], -(top+height), x+size.fontBoundingBoxAscent );	// todo - adjust alignment.
+					ctx.fillText( xaxis[i], -(top+height), x+size.emHeightAscent );	// todo - adjust alignment.
 					ctx.restore();
 				}
 
