@@ -305,7 +305,6 @@ int main( int argc, char** argv ) {
 			time_t	now;
 			struct tm* tm;
 			char timestamp[64];
-			char timestamp2[64];
 			(void)time(&now);
 			tm = localtime( &now );
 			snprintf( timestamp, sizeof(timestamp), "%04d-%02d-%02d %02d:%02d:%02d",
