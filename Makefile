@@ -1,26 +1,31 @@
 
 COPTS=-pedantic -Wall -Werror
 
-all:	rs485-tcp controller_read webserver history
+all:	rs485-tcp controller_read webserver history documentation/html/index.html
 
-webserver: webserver.cpp common.cpp
+webserver: webserver.cpp Common.cpp
 	cc $(COPTS) -o $@ $^
 clean::
-	rm -f webserver.cpp
+	rm -f webserver
 	
-controller_read: controller_read.cpp common.cpp modbus.cpp
+controller_read: controller_read.cpp Common.cpp modbus.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f controller_read
 
-rs485-tcp: rs485-tcp.cpp common.cpp
+rs485-tcp: rs485-tcp.cpp Common.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f rs485-tcp
 
-history: history.cpp common.cpp modbus.cpp
+history: history.cpp Common.cpp modbus.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 
 
 clean::
 	rm -f history
 
+documentation/html/index.html: *.cpp *.hpp Doxyfile
+	doxygen
+
+clean::
+	rm -rf documentation
