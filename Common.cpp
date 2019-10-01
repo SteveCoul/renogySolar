@@ -169,6 +169,9 @@ char* Common::mReadLine( int fd ) {			// FIXME
 			break;
 		}
 
+		if ( ret == 0 ) { /* remote closed */
+			break;
+		}
 		for ( int j = i; j < i+ret; j++ ) {
 			if ( ( rc[j] == '\r' ) || ( rc[j] == '\n' ) ) {
 				rc[j] = '\0';
