@@ -242,6 +242,7 @@
 			set( "battery_voltage", 		getField2( this.responseXML, "battery", "voltage" ) + " v");
 			set( "battery_current", 		getField2( this.responseXML, "battery", "current" ) + " a");
 			set( "battery_state_of_charge", getField2( this.responseXML, "battery", "state_of_charge" ) + " %");
+			set( "battery_net_current", 	getField2( this.responseXML, "battery", "net_current" ) + " a");
 
 			set( "today", 					getField2( this.responseXML, "generation", "today" ) + " KwH");
 			set( "this_month", 				getField2( this.responseXML, "generation", "this_month" ) + " KwH");
@@ -339,6 +340,10 @@
 						<TR>
 							<TD class="tableaxislabel">Current</TD>
 							<TD class="tablevalue"> <P ID="battery_current"/> </TD>
+						</TR>
+						<TR>
+							<TD class="tableaxislabel">Net Current</TD>
+							<TD class="tablevalue"> <P ID="battery_net_current"/> </TD>
 						</TR>
 						<TR>
 							<TD class="tableaxislabel">State Of Charge</TD>

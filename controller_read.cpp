@@ -134,6 +134,10 @@ int main( int argc, char** argv ) {
 
 				(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_STATE_OF_CHARGE, 1, 1, value ); 
 				p+=sprintf(p,"\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat );
+
+				(void)modbusReadVariable( raddr, rport, id, RENOGY_NET_BATTERY_CURRENT_L, 100, 2, value ); 
+				tmp = ( value[0].raw << 16 ) | value[1].raw;
+				p+=sprintf(p,"\t\t<net_current>%f</net_current>\n", value[0].asFloat );
 				p+=sprintf(p,"\t</battery>\n");
 
 				p+=sprintf(p,"\t<generation>\n");
