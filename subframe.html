@@ -3,6 +3,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 	<SCRIPT>
 
+		var g_rated_power = 400.0;
 		var controller_id = 0;
 		var relative_graph = 0;
 
@@ -72,7 +73,7 @@
 				gradient.addColorStop( 1, "#8080FF" );
 			} else {
 				minYValue = 0;
-				maxYValue = 400.0;		// HACK - this needs to come from XML for PV Maximum Power rating
+				maxYValue = g_rated_power;
 				gradient = ctx.createLinearGradient(0,0,0,height);
 				gradient.addColorStop( 0, "#80FF80" );
 				gradient.addColorStop( 0.5, "#FFFF80" );
@@ -233,7 +234,8 @@
 
 			set( "rated_voltage", getField2( this.responseXML, "pv_array_rating", "voltage" ) + " v");
 			set( "rated_current", getField2( this.responseXML, "pv_array_rating", "current" ) + " a");
-			set( "rated_power",   getField2( this.responseXML, "pv_array_rating", "power" ) + " w");
+			g_rated_power = getField2( this.responseXML, "pv_array_rating", "power" );
+			set( "rated_power", g_rated_power + " w" );
 
 			set( "now_voltage", getField2( this.responseXML, "pv_array_now", "voltage" ) + " v");
 			set( "now_current", getField2( this.responseXML, "pv_array_now", "current" ) + " a");
