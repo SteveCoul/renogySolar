@@ -18,7 +18,10 @@
 
 #include "Common.hpp"
 
-int Application::main( int argc, char** argv ) {
+class WebServer {
+public:
+static
+int main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
 	int m_server_fd;
@@ -73,4 +76,7 @@ int Application::main( int argc, char** argv ) {
 	}
 	return 0;
 }
+};
+
+ENTRYPOINT( WebServer )
 

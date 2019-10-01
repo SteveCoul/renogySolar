@@ -19,7 +19,11 @@
 #include "modbus.hpp"
 #include "renogy.hpp"
 
-int Application::main( int argc, char** argv ) {
+class Controller {
+public:
+
+static
+int main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
 	int m_server_fd;
@@ -175,3 +179,8 @@ int Application::main( int argc, char** argv ) {
 	}
 	return 0;
 }
+
+};
+
+ENTRYPOINT( Controller )
+

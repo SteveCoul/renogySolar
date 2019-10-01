@@ -12,10 +12,9 @@ public:
 	static char* mReadLine( int fd );
 };
 
-class Application {
-public:
-	static int main( int argc, char** argv );
-};
+typedef int (*bootstrap)( int argc, char** argv );
+bootstrap getclass( void );
+#define ENTRYPOINT( app ) bootstrap getclass( void ) { return app::main; }
 
 #define log Common::log
 

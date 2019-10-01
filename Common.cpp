@@ -187,7 +187,7 @@ int main( int argc, char** argv ) {
 
 	openlog( NULL, LOG_PID, LOG_USER );
 
-	rc = Application::main( argc, argv );
+	getclass()( argc, argv );
 
 	return rc;
 }
