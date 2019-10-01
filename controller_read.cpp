@@ -109,8 +109,8 @@ int main( int argc, char** argv ) {
 				p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
 				
 				(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_POWER, 100, 2, value ); 
-				tmp = ( value[0].raw << 16 ) | value[1].raw;
-				p+=sprintf(p,"\t\t<power>%f</power>\n", value[0].asFloat );
+				tmp = ( value[1].raw << 16 ) | value[0].raw;
+				p+=sprintf(p,"\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
 				p+=sprintf(p,"\t</pv_array_rating>\n");
 				
 				p+=sprintf(p,"\t<pv_array_now>\n");
@@ -121,8 +121,8 @@ int main( int argc, char** argv ) {
 				p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
 
 				(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_POWER, 100, 2, value ); 
-				tmp = ( value[0].raw << 16 ) | value[1].raw;
-				p+=sprintf(p,"\t\t<power>%f</power>\n", value[0].asFloat );
+				tmp = ( value[1].raw << 16 ) | value[0].raw;
+				p+=sprintf(p,"\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
 				p+=sprintf(p,"\t</pv_array_now>\n");
 				
 				p+=sprintf(p,"\t<battery>\n");
@@ -136,8 +136,8 @@ int main( int argc, char** argv ) {
 				p+=sprintf(p,"\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat );
 
 				(void)modbusReadVariable( raddr, rport, id, RENOGY_NET_BATTERY_CURRENT_L, 100, 2, value ); 
-				tmp = ( value[0].raw << 16 ) | value[1].raw;
-				p+=sprintf(p,"\t\t<net_current>%f</net_current>\n", value[0].asFloat );
+				tmp = ( value[1].raw << 16 ) | value[0].raw;
+				p+=sprintf(p,"\t\t<net_current>%f</net_current>\n", ((float)tmp)/100.0f );
 				p+=sprintf(p,"\t</battery>\n");
 
 				p+=sprintf(p,"\t<generation>\n");
