@@ -19,7 +19,7 @@
 #include "modbus.hpp"
 #include "renogy.hpp"
 
-int main( int argc, char** argv ) {
+int Application::main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
 	int m_server_fd;

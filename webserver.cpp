@@ -18,7 +18,7 @@
 
 #include "Common.hpp"
 
-int main( int argc, char** argv ) {
+int Application::main( int argc, char** argv ) {
 
 	// FIXME proper arg parsing
 	int m_server_fd;
@@ -71,4 +71,6 @@ int main( int argc, char** argv ) {
 			}
 		}
 	}
+	return 0;
 }
+

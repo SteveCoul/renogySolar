@@ -224,7 +224,7 @@ private:
 sqlite3*		Table::c_db;
 class Table*	Table::c_list = 0;
 
-int main( int argc, char** argv ) {
+int Application::main( int argc, char** argv ) {
 	int rport = atoi( argv[2] );
 	const char* raddr = argv[1];
 	/* args 4..argc are id's to read and log*/

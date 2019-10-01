@@ -73,7 +73,7 @@ void transact( int client_fd, int serial_fd, int wait_time ) {
 	usleep(wait_time);
 }
 
-int main( int argc, char** argv ) {
+int Application::main( int argc, char** argv ) {
 	int rc = 0;
 
 	openlog( NULL, LOG_PID, LOG_USER );

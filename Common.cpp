@@ -179,3 +179,13 @@ char* Common::mReadLine( int fd ) {			// FIXME
 	return rc;
 }
 
+int main( int argc, char** argv ) {
+	int rc = 0;
+
+	openlog( NULL, LOG_PID, LOG_USER );
+
+	rc = Application::main( argc, argv );
+
+	return rc;
+}
+

@@ -12,6 +12,11 @@ public:
 	static char* mReadLine( int fd );
 };
 
+class Application {
+public:
+	static int main( int argc, char** argv );
+};
+
 #define log Common::log
 
 #endif
