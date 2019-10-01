@@ -18,7 +18,7 @@
 
 #include <sqlite3.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 #include "modbus.hpp"
 #include "renogy.hpp"
 
@@ -116,9 +116,9 @@ public:
 		char end_time[64];
 		mktimestamp( end_time, time(NULL) );
 
-		mprintf( &result, "<xml>\n" );
+		Common::mprintf( &result, "<xml>\n" );
 		forEachInTimeRange( id, start_time, end_time, &Table::toXMLcallback, &result );
-		mprintf( &result, "</xml>\n" );
+		Common::mprintf( &result, "</xml>\n" );
 		return result;
 	}
 
@@ -132,10 +132,10 @@ private:
 	}
 
 	void toXMLcallback( void* param, const char* t, float voltage, float current ) {
-		mprintf( (char**)param, "<entry time='%s'>\n", t );
-		mprintf( (char**)param, "<voltage>%f</voltage>\n", voltage );
-		mprintf( (char**)param, "<current>%f</current>\n", current );
-		mprintf( (char**)param, "</entry>\n");
+		Common::mprintf( (char**)param, "<entry time='%s'>\n", t );
+		Common::mprintf( (char**)param, "<voltage>%f</voltage>\n", voltage );
+		Common::mprintf( (char**)param, "<current>%f</current>\n", current );
+		Common::mprintf( (char**)param, "</entry>\n");
 	}
 
 	void forEachInTimeRange( int id, const char* start_time, const char* end_time, callback_fn callback, void* param ) {
@@ -229,7 +229,7 @@ int main( int argc, char** argv ) {
 	const char* raddr = argv[1];
 	/* args 4..argc are id's to read and log*/
 
-	int server = createTCPServerSocket( atoi( argv[3] ) );
+	int server = Common::createTCPServerSocket( atoi( argv[3] ) );
 
 	openlog( NULL, LOG_PID, LOG_USER );
 
@@ -258,8 +258,8 @@ int main( int argc, char** argv ) {
 		(void)poll( &pfd, 1, 1000 );
 		if ( pfd.revents ) {
 			char buffer[1024];
-			int client_fd = tcpAccept( server );
-			char* line = mReadLine( client_fd );
+			int client_fd = Common::tcpAccept( server );
+			char* line = Common::mReadLine( client_fd );
 
 			int i = 0;
 			while( ( line[i] != ' ' ) && ( line[i] != '\t' ) ) i++;
@@ -289,7 +289,7 @@ int main( int argc, char** argv ) {
 			}
 
 			free( (void*)line );
-			waitForTCPHangup( client_fd );
+			Common::waitForTCPHangup( client_fd );
 
 			close( client_fd );
 		}

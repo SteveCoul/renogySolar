@@ -12,7 +12,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 
 static
 void transact( int client_fd, int serial_fd, int wait_time ) {
@@ -125,7 +125,7 @@ int main( int argc, char** argv ) {
 			} else if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
 				log( LOG_CRIT, "Failed iflush : %s\n", strerror(errno) );
 			} else {
-				m_server_fd = createTCPServerSocket( port );
+				m_server_fd = Common::createTCPServerSocket( port );
 				if ( m_server_fd < 0 ) {
 					log( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
 					rc = 5;

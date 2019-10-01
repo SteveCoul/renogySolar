@@ -10,7 +10,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 #include "modbus.hpp"
 
 static
@@ -44,7 +44,7 @@ int readComplete( int fd, unsigned char* buffer, int len ) {
 
 static
 int transact( const char* ip, unsigned short port, unsigned char* buffer, int send_len, int rx_len ) {
-	int fd = connectTCP( ip, port );
+	int fd = Common::connectTCP( ip, port );
 	int rc = -1;
 	if ( fd >= 0 ) {
 //		printf("> "); for ( int i = 0; i < send_len; i++ ) printf("%02X ", buffer[i] ); printf("\n");

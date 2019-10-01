@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 
 static int LOG_ALERT_enabled = 1;
 static int LOG_CRIT_enabled = 1;
@@ -20,7 +20,7 @@ static int LOG_NOTICE_enabled = 1;
 static int LOG_INFO_enabled = 0;
 static int LOG_DEBUG_enabled = 0;
 
-void log( int level, const char* fmt, ... ) {
+void Common::log( int level, const char* fmt, ... ) {
 	int output = 0;
 	switch( level ) {
 	case LOG_ALERT:
@@ -57,7 +57,7 @@ void log( int level, const char* fmt, ... ) {
 	}
 }
 
-int mprintf( char** pp, const char* fmt, ... ) {
+int Common::mprintf( char** pp, const char* fmt, ... ) {
 	char* n = (char*)malloc(0);
 	va_list args;
 
@@ -75,14 +75,14 @@ int mprintf( char** pp, const char* fmt, ... ) {
 	return rc;
 }
 
-int tcpAccept( int server ) {
+int Common::tcpAccept( int server ) {
 	struct sockaddr_in sai;
 	socklen_t sai_len = sizeof(sai);
 	memset( &sai, 0, sizeof(sai) );
 	return accept( server, (struct sockaddr*)&sai, &sai_len );
 }
 
-int createTCPServerSocket( unsigned short port ) {
+int Common::createTCPServerSocket( unsigned short port ) {
 	int server_fd;
 
 	server_fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
@@ -116,7 +116,7 @@ int createTCPServerSocket( unsigned short port ) {
 	return server_fd;
 }
 
-void waitForTCPHangup( int fd ) {
+void Common::waitForTCPHangup( int fd ) {
 	struct pollfd pfd;
 	pfd.fd = fd;
 	pfd.events = POLLIN | POLLHUP;
@@ -136,7 +136,7 @@ void waitForTCPHangup( int fd ) {
 	}
 }
 
-int connectTCP( const char* ip, unsigned short port ) {
+int Common::connectTCP( const char* ip, unsigned short port ) {
 	int fd = -1;
 
 	fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
@@ -157,7 +157,7 @@ int connectTCP( const char* ip, unsigned short port ) {
 	return fd;
 }
 
-char* mReadLine( int fd ) {			// FIXME
+char* Common::mReadLine( int fd ) {			// FIXME
 	char* rc = (char*)malloc(65536);
 	int i = 0;
 	for (;;) {

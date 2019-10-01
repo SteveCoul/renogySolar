@@ -16,7 +16,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 
 int main( int argc, char** argv ) {
 
@@ -24,16 +24,16 @@ int main( int argc, char** argv ) {
 	int m_server_fd;
 	int myport = atoi(argv[1]);
 
-	m_server_fd = createTCPServerSocket( myport );
+	m_server_fd = Common::createTCPServerSocket( myport );
 	if ( m_server_fd < 0 ) {
 		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
 	} else {
 		while(1) {		// No way or need to quit atm
-			int client_fd = tcpAccept( m_server_fd );
+			int client_fd = Common::tcpAccept( m_server_fd );
 			if ( client_fd < 0 ) {
 				fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
 			} else {
-				char* line = mReadLine( client_fd );
+				char* line = Common::mReadLine( client_fd );
 
 				int i = 0;
 
@@ -63,7 +63,7 @@ int main( int argc, char** argv ) {
 					}
 					close( fd );
 
-					waitForTCPHangup( client_fd );
+					Common::waitForTCPHangup( client_fd );
 
 					close( client_fd );
 				}	

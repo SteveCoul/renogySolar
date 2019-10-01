@@ -15,7 +15,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include "common.hpp"
+#include "Common.hpp"
 #include "modbus.hpp"
 #include "renogy.hpp"
 
@@ -31,7 +31,7 @@ int main( int argc, char** argv ) {
 
 	signal( SIGPIPE, SIG_IGN );
 
-	m_server_fd = createTCPServerSocket( myport );
+	m_server_fd = Common::createTCPServerSocket( myport );
 	if ( m_server_fd < 0 ) {
 		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
 	} else {
@@ -168,7 +168,7 @@ int main( int argc, char** argv ) {
 				write( client_fd, headers, p-headers );
 				write( client_fd, buffer, body_len );
 
-				waitForTCPHangup( client_fd );
+				Common::waitForTCPHangup( client_fd );
 				close( client_fd );
 			}
 		}
