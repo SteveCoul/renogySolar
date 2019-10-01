@@ -95,7 +95,7 @@ public:
 	}
 	
 	///
-	/// Application entry point.
+	/// \brief	Application entry point.
 	///
 	/// Open and configure UART from device path supplied on command line, create the TCP server socket,
 	/// listen for connections, and each connection will handle a single MODBUS command:response pair
@@ -109,8 +109,6 @@ public:
 	static
 	int main( int argc, char** argv ) {
 		int rc = 0;
-	
-		openlog( NULL, LOG_PID, LOG_USER );
 	
 		log( LOG_INFO, "Starting" );
 	
