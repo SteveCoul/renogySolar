@@ -159,7 +159,7 @@
 				num_processes--;
 				if ( num_processes == 0 ) {
 					if ( first_update == 1 ) {
-						first_update = 1;		// HACK FOR NOW, 
+		//				first_update = 1;		// HACK FOR NOW, 
 						window.top.postMessage( document.location.search.substring(1), "*" );
 					}
 					window.setTimeout( update, 1234 );
@@ -256,15 +256,37 @@
 			doneProcess();
 		}
 
+		var limit_recent = 0;
+		var counter_recent = limit_recent;
+		var limit_minutes = 2;
+		var counter_minutes = limit_minutes;
+		var limit_hours = 5;
+		var counter_hours = limit_hours;
+
 		function update() {
 			var url = document.location.search.substring(1);
 			var arr = url.split('&');
 			url = arr[0].split('=')[1];
 			process( url, doupdate );
 			if ( controller_id != 0 ) {
-				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Recent", doupdaterecent );
-				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Minutes", doupdateminutes );
-				process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Hours", doupdatehours );
+				if ( counter_recent == limit_recent ) {
+					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Recent", doupdaterecent );
+					counter_recent = 0;
+				} else {
+					counter_recent++;
+				}
+				if ( counter_minutes == limit_minutes ) {
+					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Minutes", doupdateminutes );
+					counter_minutes = 0;
+				} else {
+					counter_minutes++;
+				}
+				if ( counter_hours == limit_hours ) {
+					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Hours", doupdatehours );
+					counter_hours = 0;
+				} else {
+					counter_hours++;
+				}
 			}
 		}
 
