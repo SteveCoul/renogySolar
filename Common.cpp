@@ -68,6 +68,8 @@ int Common::mprintf( char** pp, const char* fmt, ... ) {
 	int ol = 0;
 	if ( pp[0] != NULL ) ol = strlen( pp[0] );
 
+	// FIX potential memory leak and warn to syslog on error please.
+
 	pp[0] = (char*)realloc( pp[0], ol + nl + 1024 );
 	va_start( args, fmt );
 	int rc = vsprintf( pp[0] + ol, fmt, args );
