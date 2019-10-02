@@ -235,6 +235,9 @@
 			set( "rated_voltage", getField2( this.responseXML, "pv_array_rating", "voltage" ) + " v");
 			set( "rated_current", getField2( this.responseXML, "pv_array_rating", "current" ) + " a");
 			g_rated_power = getField2( this.responseXML, "pv_array_rating", "power" );
+
+			g_rated_power /= 2;		/* Hack. the rated power is for a 24v bank and I have a 12v one */
+
 			set( "rated_power", g_rated_power + " w" );
 
 			set( "now_voltage", getField2( this.responseXML, "pv_array_now", "voltage" ) + " v");
