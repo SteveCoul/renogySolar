@@ -51,11 +51,7 @@ public:
 			fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
 		} else {
 			while(1) {		// No way or need to quit atm
-				struct sockaddr_in	sai;
-	
-				socklen_t sai_len = sizeof(sai);
-				memset( &sai, 0, sizeof(sai) );
-				int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
+				int client_fd = Common::tcpAccept( m_server_fd );
 				if ( client_fd < 0 ) {
 					fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
 				} else {
@@ -107,81 +103,76 @@ public:
 					}
 	
 					unsigned int tmp;
-					char buffer[65536];
-					char* p;
+					char* body = NULL;
+					char* head = NULL;
 	
-					memset( buffer, 0, sizeof(buffer) );
+					Common::mprintf( &body, "<controller id=\"%d\">\n", id );
 	
-					p = buffer;
-	
-					p+=sprintf(p,"<controller id=\"%d\">\n", id );
-	
-					p+=sprintf(p,"\t<pv_array_rating>\n");
+					Common::mprintf( &body, "\t<pv_array_rating>\n");
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_VOLTAGE, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 				
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_CURRENT, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat );
 					
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_RATED_INPUT_POWER, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
-					p+=sprintf(p,"\t</pv_array_rating>\n");
+					Common::mprintf( &body, "\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t</pv_array_rating>\n");
 					
-					p+=sprintf(p,"\t<pv_array_now>\n");
+					Common::mprintf( &body, "\t<pv_array_now>\n");
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 					
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_POWER, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
-					p+=sprintf(p,"\t</pv_array_now>\n");
+					Common::mprintf( &body, "\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t</pv_array_now>\n");
 					
-					p+=sprintf(p,"\t<battery>\n");
+					Common::mprintf( &body, "\t<battery>\n");
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_VOLTAGE, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<voltage>%f</voltage>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_CHARGING_CURRENT, 100, 1, value ); 
-					p+=sprintf(p,"\t\t<current>%f</current>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_BATTERY_STATE_OF_CHARGE, 1, 1, value ); 
-					p+=sprintf(p,"\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat );
+					Common::mprintf( &body, "\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_NET_BATTERY_CURRENT_L, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<net_current>%f</net_current>\n", ((float)tmp)/100.0f );
-					p+=sprintf(p,"\t</battery>\n");
+					Common::mprintf( &body, "\t\t<net_current>%f</net_current>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t</battery>\n");
 	
-					p+=sprintf(p,"\t<generation>\n");
+					Common::mprintf( &body, "\t<generation>\n");
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_TODAY_L, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<today>%f</today>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t\t<today>%f</today>\n", ((float)tmp)/100.0f );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_MONTH_L, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<this_month>%f</this_month>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t\t<this_month>%f</this_month>\n", ((float)tmp)/100.0f );
 	
 					(void)modbusReadVariable( raddr, rport, id, RENOGY_GENERATED_ENERGY_YEAR_L, 100, 2, value ); 
 					tmp = ( value[1].raw << 16 ) | value[0].raw;
-					p+=sprintf(p,"\t\t<this_year>%f</this_year>\n", ((float)tmp)/100.0f );
-					p+=sprintf(p,"\t</generation>\n");
+					Common::mprintf( &body, "\t\t<this_year>%f</this_year>\n", ((float)tmp)/100.0f );
+					Common::mprintf( &body, "\t</generation>\n");
 	
-					p+=sprintf( p, "</controller>\n");
+					Common::mprintf( &body, "</controller>\n");
 	
-					int body_len = p-buffer;
+					Common::mprintf( &head, "HTTP/1.0 200 OK\r\n");
+					Common::mprintf( &head, "Access-Control-Allow-Origin: *\r\n");
+					Common::mprintf( &head, "Content-Length: %d\r\n", strlen( body ) );
+					Common::mprintf( &head, "\r\n");
 	
-					char headers[65536];
-					p = headers;
-					p+=sprintf(p,"HTTP/1.0 200 OK\r\n");
-					p+=sprintf(p,"Access-Control-Allow-Origin: *\r\n");
-					p+=sprintf(p,"Content-Length: %d\r\n", body_len );
-					p+=sprintf(p,"\r\n");
-	
-					write( client_fd, headers, p-headers );
-					write( client_fd, buffer, body_len );
+					write( client_fd, head, strlen(head) );
+					write( client_fd, body, strlen(body) );
+
+					free( (void*)body );
+					free( (void*)head );
 	
 					Common::waitForTCPHangup( client_fd );
 					close( client_fd );
