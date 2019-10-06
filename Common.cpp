@@ -7,6 +7,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <sys/poll.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
@@ -186,10 +187,39 @@ char* Common::mReadLine( int fd ) {			// FIXME
 
 int main( int argc, char** argv ) {
 	int rc = 0;
+	pid_t pid;
 
-	openlog( NULL, LOG_PID, LOG_USER );
+reboot:
+	pid = fork();
+	if ( pid == (pid_t)-1 ) {
+		log( LOG_CRIT, "Failed to fork on start" );
+		rc = -1;
+	} else if ( pid == (pid_t) 0 ) {
+		openlog( NULL, LOG_PID, LOG_USER );
+		log( LOG_NOTICE, "Started" );
+		getclass()( argc, argv );
+		rc = 0;
+	} else {
+		openlog( NULL, LOG_PID, LOG_USER );
+		pid = wait( &rc );
+		if ( pid == (pid_t)-1 ) {
+			log( LOG_CRIT, "wait() failed. should consider a reboot" );
+			rc = 1;
+		} else if ( WIFEXITED( rc ) ) {
+			log( LOG_NOTICE, "Child exited normally with %d", WEXITSTATUS( rc ) );
+		} else if ( WIFSIGNALED( rc ) ) {
+			log( LOG_NOTICE, "Child exited with signal %d", WTERMSIG( rc ) );
+			if ( WCOREDUMP( rc ) ) {
+				log( LOG_NOTICE, "Coredump produced" );
+			}
+		} else if ( WIFSTOPPED( rc ) ) {
+			log( LOG_NOTICE, "Child stopped with %d", WSTOPSIG( rc ) );
+		} else {
+			log( LOG_NOTICE, "Child complete for unknown reason" );
+		}
 
-	getclass()( argc, argv );
+		goto reboot;
+	}
 
 	return rc;
 }
