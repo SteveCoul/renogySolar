@@ -16,7 +16,7 @@ in the status of the controller being passed back as an XML file wrapped in a HT
 
 ## history
 Logs data for all specified controllers. Uses MODBUS protocol over RS485-TCP in order to 
-keep a log of voltate and current parameters in a SQLite database. Keeps records every
+keep a log of voltatige and current parameters in a SQLite database. Keeps records every
 second for the last minute, every minute for the last hour and every hour for the last day
 etc. These databases can be queried in XML format over a TCP server port which acts as
 a simple HTTP server.
