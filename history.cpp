@@ -285,7 +285,7 @@ int main( int argc, char** argv ) {
 				write( client_fd, buffer, strlen(buffer) );
 			} else {
 				char* xml = tab->toXML( atoi(clientid) );
-				sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", strlen(xml) );
+				sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(xml) );
 				write( client_fd, buffer, strlen(buffer) );
 				write( client_fd, xml, strlen(xml) );
 				free( (void*)xml );
