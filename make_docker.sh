@@ -50,6 +50,9 @@ RUN apt-get -y install vim
 RUN apt-get -y install net-tools
 RUN apt-get -y install make
 RUN apt-get -y install gcc
+RUN apt-get -y install g++
+RUN apt-get -y install libsqlite3-dev
+RUN apt-get -y install doxygen graphviz
 USER $WHO
 WORKDIR /home/$WHO
 _EOF_
