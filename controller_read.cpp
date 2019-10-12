@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
