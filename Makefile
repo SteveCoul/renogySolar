@@ -1,7 +1,7 @@
 
 COPTS=-pedantic -Wall -Werror
 
-all:	rs485-tcp controller_read webserver history documentation/html/index.html
+all:	rs485-tcp controller_read webserver history
 
 webserver: webserver.cpp Common.cpp
 	cc $(COPTS) -o $@ $^
@@ -23,6 +23,8 @@ history: history.cpp Common.cpp modbus.cpp
 
 clean::
 	rm -f history
+
+doc: documentation/html/index.html
 
 documentation/html/index.html: *.cpp *.hpp Doxyfile
 	doxygen
