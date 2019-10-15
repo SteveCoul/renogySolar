@@ -1,13 +1,8 @@
 #!/bin/sh
 
-if [ $# -eq 0 ]; then
-	$0 renogysolar
-	exit 0
-fi
-
-PROJECT_NAME=$1
+PROJECT_NAME=renogysolar
 ERASE=""
-WHO=`whoami`
+WHO=renogysolar
 
 # Kill all existing containers for the project
 EXIST_CONTAINERS=`docker ps -a --filter "ancestor=$PROJECT_NAME" -q`
@@ -16,17 +11,6 @@ docker rm $EXIST_CONTAINERS 2>/dev/null
 
 # Remove all existing images. 
 docker rmi $PROJECT_NAME 2>/dev/null
-
-# Copy users ssh keys to put inside container
-cp ~/.ssh/id_rsa .
-cp ~/.ssh/id_rsa.pub .
-ERASE+=" id_rsa id_rsa.pub"
-
-# Create sudoers entry
-cat <<_EOF_ > $WHO.sudo
-$WHO ALL=(ALL) NOPASSWD:ALL
-_EOF_
-ERASE+=" $WHO.sudo"
 
 # Create the dockerfile
 cat <<_EOF_ > Dockerfile
@@ -41,8 +25,6 @@ ADD id_rsa.pub .ssh/id_rsa.pub
 RUN chmod 600 .ssh/id_rsa
 RUN chmod 600 .ssh/id_rsa.pub
 RUN chown -R $WHO .ssh
-RUN apt-get -y install sudo
-ADD $WHO.sudo /etc/sudoers.d/$WHO
 RUN apt-get -y install git
 RUN apt-get -y install bash
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
@@ -62,3 +44,6 @@ ERASE+=" Dockerfile"
 docker build -t $PROJECT_NAME .
 
 rm -f $ERASE
+
+# How to use
+# docker run -v $PWD:/home/renogysolar renogysolar make
