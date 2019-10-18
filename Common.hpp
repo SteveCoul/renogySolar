@@ -1,6 +1,8 @@
 #ifndef __common_hpp__
 #define __common_hpp__
 
+#include <syslog.h>
+
 class Common {
 public:
 	static void log( int level, const char* fmt, ... );
@@ -10,6 +12,7 @@ public:
 	static void waitForTCPHangup( int fd );
 	static int connectTCP( const char* ip, unsigned short port );
 	static char* mReadLine( int fd );
+	static int timedRead( int fd, void* buffer, size_t length, int timeout_ms );
 };
 
 typedef int (*bootstrap)( int argc, char** argv );

@@ -7,6 +7,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <sys/poll.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -20,6 +21,63 @@ static int LOG_WARNING_enabled = 1;
 static int LOG_NOTICE_enabled = 1;
 static int LOG_INFO_enabled = 0;
 static int LOG_DEBUG_enabled = 0;
+
+static
+unsigned long long NOW( void ) {
+	struct timeval tv;
+	unsigned long long rc;
+	(void)gettimeofday( &tv, NULL );
+
+	rc = tv.tv_sec * 1000;
+	rc = rc + ( tv.tv_usec / 1000 );
+	return rc;
+}
+
+int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
+	unsigned char* ptr = (unsigned char*)buffer;
+	struct pollfd pfd;
+	unsigned long long start_time = NOW();
+	int rc = 0;
+
+	for (;;) {
+
+		if ( rc == (int)length ) {
+			break;
+		}
+
+		memset( &pfd, 0, sizeof(pfd) );
+		pfd.fd = fd;
+		pfd.events = POLLIN;
+
+		int to;
+		if ( timeout_ms < 0 ) {
+			to = -1;
+		} else {
+			to = NOW() - start_time;
+			if ( to > timeout_ms ) {
+				errno = ETIMEDOUT;
+				rc = -1;
+				break;
+			}
+		}
+
+		(void)poll( &pfd, 1, to );
+
+		if ( pfd.revents & POLLIN ) {
+			int to_read = length - rc;
+			int ret = read( fd, ptr, to_read );
+			if ( ret < 0 ) {
+				rc = -1;
+				break;
+			}
+
+			rc+=ret;
+			ptr+=ret; 
+		}
+	}
+
+	return rc;
+}
 
 void Common::log( int level, const char* fmt, ... ) {
 	int output = 0;

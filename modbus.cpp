@@ -39,7 +39,11 @@ int writeComplete( int fd, unsigned char* buffer, int len ) {
 
 static
 int readComplete( int fd, unsigned char* buffer, int len ) {
-	return read( fd, buffer, len ); //FIXME
+	int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 300 );	/* todo, make timeout configurable */
+	if ( rc < 0 ) {
+		log( LOG_WARNING, "modbus transaction reply didn't return [%s]", strerror(errno) );
+	}
+	return rc;
 }
 
 static
@@ -86,7 +90,7 @@ int modbusReadVariable( const char* ip, unsigned short port, unsigned int unit, 
 	unsigned char buffer[256];
 	int len = 0;
 	unsigned int crc;
-	int rc;
+	int rc = -1;
 
 	if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_OUTPUT_COIL ) {
 		assert(0);
@@ -105,11 +109,10 @@ int modbusReadVariable( const char* ip, unsigned short port, unsigned int unit, 
 		buffer[7] = ( crc ) & 0xFF;
 		len = 8;
 		len = transact( ip, port, buffer, len, 5+(count*2) );
-
-		// FIXME verify return
-
-		setValues( scale, count, p_result, buffer+3 );
-		rc = 0;
+		if ( len >= 0 ) {
+			setValues( scale, count, p_result, buffer+3 );
+			rc = 0;
+		}
 	} else if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_INPUT_REGISTER ) {
 
 		address &= ~MODBUS_VT_MASK;
@@ -125,11 +128,10 @@ int modbusReadVariable( const char* ip, unsigned short port, unsigned int unit, 
 		buffer[7] = ( crc ) & 0xFF;
 		len = 8;
 		len = transact( ip, port, buffer, len, 5+(count*2) );
-
-		// FIXME verify return
-
-		setValues( scale, count, p_result, buffer+3 );
-		rc = 0;
+		if ( len >= 0 ) {
+			setValues( scale, count, p_result, buffer+3 );
+			rc = 0;
+		}
 	} else if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_OUTPUT_REGISTER ) {
 		assert(0);
 	} else {
@@ -142,7 +144,7 @@ int modbusWriteRawVariable( const char* ip, unsigned short port, unsigned int un
 	unsigned char buffer[256];
 	int len = 0;
 	unsigned int crc;
-	int rc;
+	int rc = -1;
 
 	if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_OUTPUT_COIL ) {
 		assert(0);
@@ -167,9 +169,9 @@ int modbusWriteRawVariable( const char* ip, unsigned short port, unsigned int un
 		buffer[len++] = ( crc >> 8 ) & 0xFF;
 		buffer[len++] = ( crc ) & 0xFF;
 		len = transact( ip, port, buffer, len, 8 );
-
-		// FIXME verify return
-		rc = 0;
+		if ( len >= 0 ) {
+			rc = 0;
+		}
 	} else if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_OUTPUT_REGISTER ) {
 		assert(0);
 	} else {

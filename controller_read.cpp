@@ -56,6 +56,8 @@ public:
 					fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
 				} else {
 					modbus_data_value_t value[3];
+
+					// TODO handle error/timeout on modbus read
 	
 					time_t	now;
 					struct tm* tm;
