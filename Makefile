@@ -18,7 +18,7 @@ rs485-tcp: rs485-tcp.cpp Common.cpp
 clean::
 	rm -f rs485-tcp
 
-history: history.cpp Common.cpp modbus.cpp
+history: history.cpp Common.cpp modbus.cpp HistoryTable.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 
 
 clean::
