@@ -50,7 +50,10 @@ int main( int argc, char** argv ) {
 				line[i] = 0;
 
 				char buffer[65536];
-				int fd = open( name[0] == '\0' ? "index.html" : name, O_RDONLY );
+
+				sprintf( buffer, "www/%s", name[0] == '\0' ? "index.html" : name );
+
+				int fd = open( buffer, O_RDONLY );
 				if ( fd < 0 ) {
 					sprintf( buffer, "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n" );
 					write( client_fd, buffer, strlen(buffer) );
