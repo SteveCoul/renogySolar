@@ -3,22 +3,22 @@ COPTS=-pedantic -Wall -Werror
 
 all:	rs485-tcp controller_read webserver history
 
-webserver: webserver.cpp Common.cpp
+webserver: src/webserver.cpp src/Common.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f webserver
 	
-controller_read: controller_read.cpp Common.cpp modbus.cpp
+controller_read: src/controller_read.cpp src/Common.cpp src/modbus.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f controller_read
 
-rs485-tcp: rs485-tcp.cpp Common.cpp
+rs485-tcp: src/rs485-tcp.cpp src/Common.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f rs485-tcp
 
-history: history.cpp Common.cpp modbus.cpp HistoryTable.cpp
+history: src/history.cpp src/Common.cpp src/modbus.cpp src/HistoryTable.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 
 
 clean::
@@ -26,7 +26,7 @@ clean::
 
 doc: documentation/html/index.html
 
-documentation/html/index.html: *.cpp *.hpp Doxyfile
+documentation/html/index.html: src/*.cpp src/*.hpp Doxyfile
 	doxygen
 
 clean::
