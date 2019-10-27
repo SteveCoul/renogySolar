@@ -11,7 +11,7 @@ docker rm $EXIST_CONTAINERS 2>/dev/null
 docker rmi $PROJECT_NAME 2>/dev/null
 
 # Build container
-docker build -t $PROJECT_NAME .
+docker build -t $PROJECT_NAME --no-cache .
 
 # How to use
 # docker run -v $PWD:/home/renogysolar renogysolar make
