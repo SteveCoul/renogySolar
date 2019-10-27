@@ -40,7 +40,8 @@ int main( int argc, char** argv ) {
 	HistoryTable* t_recent = new HistoryTable( "Recent" );
 	HistoryTable* t_minutes = new HistoryTable( "Minutes" );
 	HistoryTable* t_hours = new HistoryTable( "Hours" );
-	
+	HistoryTable* t_days = new HistoryTable( "Days" );
+
 	t_recent->setExpiry( (time_t)(2*60) );
 	t_recent->setWindow( (time_t)60 );
 	t_recent->cascade( (time_t)60, t_minutes );
@@ -51,6 +52,11 @@ int main( int argc, char** argv ) {
 
 	t_hours->setExpiry( (time_t)(48*60*60) );
 	t_hours->setWindow( (time_t)(24*60*60) );
+	t_hours->cascade( (time_t)(24*60*60), t_days );
+
+	t_days->setExpiry( (time_t)(60*24*60*60) );
+	t_days->setWindow( (time_t)(30*24*60*60) );
+	
 
 	for (;;) {
 		struct pollfd pfd;
