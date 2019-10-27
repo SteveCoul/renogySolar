@@ -50,9 +50,7 @@ public:
 		if ( m_server_fd >= 0 ) {
 			while(1) {		// No way or need to quit atm
 				int client_fd = Common::tcpAccept( m_server_fd );
-				if ( client_fd < 0 ) {
-					fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
-				} else {
+				if ( client_fd > 0 ) {
 					modbus_data_value_t value[3];
 
 					// TODO handle error/timeout on modbus read

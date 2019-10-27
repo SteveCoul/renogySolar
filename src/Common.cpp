@@ -137,10 +137,15 @@ int Common::mprintf( char** pp, const char* fmt, ... ) {
 }
 
 int Common::tcpAccept( int server ) {
+	int rc;
 	struct sockaddr_in sai;
 	socklen_t sai_len = sizeof(sai);
 	memset( &sai, 0, sizeof(sai) );
-	return accept( server, (struct sockaddr*)&sai, &sai_len );
+	rc = accept( server, (struct sockaddr*)&sai, &sai_len );
+	if ( rc < 0 ) {
+		log( LOG_ERR, "Failed to accept tcp connection [%s]", strerror(errno) );
+	}
+	return rc;
 }
 
 int Common::createTCPServerSocket( unsigned short port ) {
