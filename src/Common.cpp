@@ -148,11 +148,11 @@ int Common::createTCPServerSocket( unsigned short port ) {
 
 	server_fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 	if ( server_fd < 0 ) {
-		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
+		log( LOG_ERR, "Failed to create server socket [%s]", strerror(errno) );
 	} else {
 		int opt = 1;
 		if ( setsockopt( server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int) ) < 0 ) {
-			fprintf( stderr, "Failed to set server socket reuseaddr [%s]\n", strerror(errno) );
+			log( LOG_ERR, "Failed to set server socket reuseaddr [%s]", strerror(errno) );
 			close( server_fd );
 			server_fd = -1;
 		} else {
@@ -162,11 +162,11 @@ int Common::createTCPServerSocket( unsigned short port ) {
 			sai.sin_port = htons( port );
 			sai.sin_addr.s_addr = htonl( INADDR_ANY );
 			if ( bind( server_fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
-				fprintf( stderr, "Failed to bind server socket [%s]\n", strerror(errno) );
+				log( LOG_ERR, "Failed to bind server socket [%s]", strerror(errno) );
 				close( server_fd );
 				server_fd = -1;
 			} else if ( listen( server_fd, 1 ) < 0 ) {
-				fprintf( stderr, "Server wont listen [%s]\n", strerror(errno) );
+				log( LOG_ERR, "Server wont listen [%s]", strerror(errno) );
 				close( server_fd );
 				server_fd = -1;
 			} else {
@@ -202,7 +202,7 @@ int Common::connectTCP( const char* ip, unsigned short port ) {
 
 	fd = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 	if ( fd < 0 ) {
-		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
+		log( LOG_ERR, "Failed to create socket [%s]", strerror(errno) );
 	} else {
 		struct sockaddr_in	sai;
 		memset( &sai, 0, sizeof(sai) );
@@ -210,7 +210,7 @@ int Common::connectTCP( const char* ip, unsigned short port ) {
 		sai.sin_port = htons( port );
 		sai.sin_addr.s_addr = inet_addr(ip);
 		if ( connect( fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
-			fprintf( stderr, "Failed to connect [%s]\n", strerror(errno) );
+			log( LOG_ERR, "socket failed to connect [%s]", strerror(errno) );
 			close( fd );
 			fd = -1;
 		}
