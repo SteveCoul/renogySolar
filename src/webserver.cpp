@@ -28,14 +28,10 @@ int main( int argc, char** argv ) {
 	int myport = atoi(argv[1]);
 
 	m_server_fd = Common::createTCPServerSocket( myport );
-	if ( m_server_fd < 0 ) {
-		fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
-	} else {
+	if ( m_server_fd > 0 ) {
 		while(1) {		// No way or need to quit atm
 			int client_fd = Common::tcpAccept( m_server_fd );
-			if ( client_fd < 0 ) {
-				fprintf( stderr, "accept() failed [%s]\n", strerror(errno) );
-			} else {
+			if ( client_fd > 0 ) {
 				char* line = Common::mReadLine( client_fd );
 
 				int i = 0;
