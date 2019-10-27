@@ -224,6 +224,11 @@
 			doneProcess();
 		}
 
+		function doupdatedays() {
+			generateGraph( "graphic_days", this.responseXML, "Last 30 Days", "time", "power (W)" );
+			doneProcess();
+		}
+
 		function doupdate() {
 
 			var test = this.responseXML.getElementsByTagName("controller")[0];
@@ -262,6 +267,8 @@
 		var counter_minutes = limit_minutes;
 		var limit_hours = 5;
 		var counter_hours = limit_hours;
+		var limit_days = 50;
+		var counter_days = limit_days;
 
 		function update() {
 			var url = document.location.search.substring(1);
@@ -286,6 +293,12 @@
 					counter_hours = 0;
 				} else {
 					counter_hours++;
+				}
+				if ( counter_days == limit_days ) {
+					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Days", doupdatedays );
+					counter_days = 0;
+				} else {
+					counter_days++;
 				}
 			}
 		}
@@ -397,6 +410,8 @@
 						</TR>
 					</TABLE>
 				</TD>
+				<TD></TD>
+				<TD></TD>
 		</TR>
 		<TR>
 			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
@@ -404,6 +419,8 @@
 			<TD ALIGN="center" ID="graphic_minutes_parent"><CANVAS ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
 			<TD ALIGN="center" ID="graphic_hours_parent"><CANVAS ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD></TD>
+			<TD ALIGN="center" ID="graphic_days_parent"><CANVAS ID="graphic_days" onclick='zoom(this.id);'></CANVAS></TD>
 		</TR>
 	</TABLE>
 </BODY>
