@@ -178,7 +178,7 @@ void HistoryTable::sqlExec( const char* command ) {
 	log( LOG_DEBUG, command );
 	int rc = sqlite3_exec( c_db, command, 0, 0, &err_msg );
 	if ( rc != SQLITE_OK ) {
-		fprintf( stderr, "error %s\n", err_msg );
+		log( LOG_ERR "error %s - processing SQL statement", err_msg );
 		sqlite3_free( err_msg );
 		assert(0);
 	}
