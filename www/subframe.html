@@ -310,6 +310,7 @@
 		var body_stored_height;
 
 		function zoom( what ) {
+
 			var e = document.getElementById( what );
 
 			if ( document.getElementById( what+"_parent" ).firstChild ) {
@@ -334,6 +335,13 @@
 				e.width = stored_width;
 				e.height = stored_height;
 			}
+
+			/* For now, expire all graphs on zoom/revert so they get reloaded */
+			counter_recent = limit_recent;
+			counter_minutes = limit_minutes;
+			counter_hours = limit_hours;
+			counter_days = limit_days;
+
 			//window.top.postMessage( document.location.search.substring(1), "*" );
 		}
 
