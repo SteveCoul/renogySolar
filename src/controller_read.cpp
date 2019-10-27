@@ -47,9 +47,7 @@ public:
 		signal( SIGPIPE, SIG_IGN );
 	
 		m_server_fd = Common::createTCPServerSocket( myport );
-		if ( m_server_fd < 0 ) {
-			fprintf( stderr, "Failed to create server socket [%s]\n", strerror(errno) );
-		} else {
+		if ( m_server_fd >= 0 ) {
 			while(1) {		// No way or need to quit atm
 				int client_fd = Common::tcpAccept( m_server_fd );
 				if ( client_fd < 0 ) {
