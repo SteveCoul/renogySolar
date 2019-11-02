@@ -33,8 +33,6 @@ int main( int argc, char** argv ) {
 
 	int server = Common::createTCPServerSocket( atoi( argv[3] ) );
 
-	openlog( NULL, LOG_PID, LOG_USER );
-
 	HistoryTable::cinit( argv[4] );
 
 	HistoryTable* t_recent = new HistoryTable( "Recent" );
