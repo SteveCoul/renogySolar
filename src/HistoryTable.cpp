@@ -80,8 +80,11 @@ void HistoryTable::addRecord( time_t now, int id, float input_voltage, float inp
 
 		forEachInTimeRange( id, start_time, end_time, &HistoryTable::doAveraging, &av );
 
-		m_cascade_target->addRecord( new_time, id, av.voltage / av.count, av.current / av.count );
-
+		if ( av.count > 0 ) {
+			av.voltage/=av.count;
+			av.current/=av.count;
+			m_cascade_target->addRecord( new_time, id, av.voltage, av.current );
+		}
 	}
 }
 
