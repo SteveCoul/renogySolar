@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,7 @@ int writeComplete( int fd, unsigned char* buffer, int len ) {
 
 static
 int readComplete( int fd, unsigned char* buffer, int len ) {
-	int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 300 );	/* todo, make timeout configurable */
+	int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 500 );	/* todo, make timeout configurable */
 	if ( rc < 0 ) {
 		log( LOG_WARNING, "modbus transaction reply didn't return [%s]", strerror(errno) );
 	}
@@ -51,7 +52,8 @@ int transact( const char* ip, unsigned short port, unsigned char* buffer, int se
 	int fd = Common::connectTCP( ip, port );
 	int rc = -1;
 	if ( fd >= 0 ) {
-//		printf("> "); for ( int i = 0; i < send_len; i++ ) printf("%02X ", buffer[i] ); printf("\n");
+		char* dbg = NULL;
+		Common::mprintf(&dbg,"modbus> "); for ( int i = 0; i < send_len; i++ ) Common::mprintf(&dbg, "%02X ", buffer[i] ); log( LOG_DEBUG, dbg ); free((void*)dbg); dbg=NULL;
 		if ( writeComplete( fd, buffer, send_len ) >= 0 ) {
 			if ( readComplete( fd, buffer, 3 ) >= 0 ) {
 				if ( buffer[1] & 0x80 ) {
@@ -59,7 +61,7 @@ int transact( const char* ip, unsigned short port, unsigned char* buffer, int se
 					assert(0);	// FIXME read exception
 				} else {
 					if ( readComplete( fd, buffer+3, rx_len-3 ) >= 0 ) {
-//						printf("< "); for ( int i = 0; i < rx_len; i++ ) printf("%02X ", buffer[i] ); printf("\n");
+						Common::mprintf(&dbg,"modbus< "); for ( int i = 0; i < rx_len; i++ ) Common::mprintf(&dbg, "%02X ", buffer[i] ); log( LOG_DEBUG, dbg ); free((void*)dbg);
 						rc = rx_len;
 					}
 				}
@@ -82,6 +84,20 @@ void setValues( int scale, int count, modbus_data_value_t* p, unsigned char* str
 		float f = (float)p->raw;
 		f = f / scale;
 		p->asFloat = f;
+		p++;
+	}
+}
+
+static
+void setInvalidValues( int scale, int count, modbus_data_value_t* p ) {
+	for ( int i = 0; i < count; i++ ) {
+		p->rawHI = 0;
+		p->rawLO = 0;
+		p->scale = scale;
+		p->raw = ( p->rawHI << 8 ) | p->rawLO;
+		p->asInteger = p->raw / scale;
+		p->asFlag = ( p->asInteger != 0 );
+		p->asFloat = NAN;
 		p++;
 	}
 }
@@ -112,6 +128,9 @@ int modbusReadVariable( const char* ip, unsigned short port, unsigned int unit, 
 		if ( len >= 0 ) {
 			setValues( scale, count, p_result, buffer+3 );
 			rc = 0;
+		} else {
+			setInvalidValues( scale, count, p_result );
+			rc = -1;
 		}
 	} else if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_INPUT_REGISTER ) {
 
@@ -131,6 +150,9 @@ int modbusReadVariable( const char* ip, unsigned short port, unsigned int unit, 
 		if ( len >= 0 ) {
 			setValues( scale, count, p_result, buffer+3 );
 			rc = 0;
+		} else {
+			setInvalidValues( scale, count, p_result );
+			rc = -1;
 		}
 	} else if ( ( address & MODBUS_VT_MASK ) == MODBUS_VT_OUTPUT_REGISTER ) {
 		assert(0);
