@@ -1,12 +1,17 @@
 
 COPTS=-pedantic -Wall -Werror -std=c++11
 
-all:	rs485-tcp controller_read webserver history
+all:	rs485-tcp controller_read webserver history test
 
 webserver: src/webserver.cpp src/Common.cpp
 	cc $(COPTS) -o $@ $^
 clean::
 	rm -f webserver
+
+test: src/test.cpp src/Common.cpp src/modbus.cpp
+	cc $(COPTS) -o $@ $^
+clean::
+	rm -f test
 	
 controller_read: src/controller_read.cpp src/Common.cpp src/modbus.cpp
 	cc $(COPTS) -o $@ $^
