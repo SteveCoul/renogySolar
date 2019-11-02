@@ -19,7 +19,7 @@ static int LOG_CRIT_enabled = 1;
 static int LOG_ERR_enabled = 1;
 static int LOG_WARNING_enabled = 1;
 static int LOG_NOTICE_enabled = 1;
-static int LOG_INFO_enabled = 0;
+static int LOG_INFO_enabled = 1;
 static int LOG_DEBUG_enabled = 0;
 
 static
@@ -258,18 +258,20 @@ reboot:
 		log( LOG_CRIT, "Failed to fork on start" );
 		rc = -1;
 	} else if ( pid == (pid_t) 0 ) {
-		openlog( NULL, LOG_PID, LOG_USER );
+		openlog( NULL, LOG_PID | LOG_PERROR, LOG_USER );
 		log( LOG_NOTICE, "Started" );
 		getclass()( argc, argv );
 		rc = 0;
 	} else {
-		openlog( NULL, LOG_PID, LOG_USER );
+		int finished = 0;
+		openlog( NULL, LOG_PID | LOG_PERROR, LOG_USER );
 		pid = wait( &rc );
 		if ( pid == (pid_t)-1 ) {
 			log( LOG_CRIT, "wait() failed. should consider a reboot" );
-			rc = 1;
 		} else if ( WIFEXITED( rc ) ) {
 			log( LOG_NOTICE, "Child exited normally with %d", WEXITSTATUS( rc ) );
+			rc = WEXITSTATUS( rc );
+			finished = 1;
 		} else if ( WIFSIGNALED( rc ) ) {
 			log( LOG_NOTICE, "Child exited with signal %d", WTERMSIG( rc ) );
 			if ( WCOREDUMP( rc ) ) {
@@ -281,7 +283,8 @@ reboot:
 			log( LOG_NOTICE, "Child complete for unknown reason" );
 		}
 
-		goto reboot;
+		if (!finished)
+			goto reboot;
 	}
 
 	return rc;
