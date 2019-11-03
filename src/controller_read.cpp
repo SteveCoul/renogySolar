@@ -15,6 +15,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include "Args.hpp"
 #include "Common.hpp"
 #include "modbus.hpp"
 #include "renogy.hpp"
@@ -34,17 +35,19 @@ class Controller {
 public:
 
 	static
-	int main( int argc, char** argv ) {
+	int main( Args* args ) {
 	
 		// FIXME proper arg parsing
 		int m_server_fd;
 	
-		int rport = atoi( argv[2] );
-		const char* raddr = argv[1];
-		int id = atoi( argv[3] );
-		int myport = atoi(argv[4]);
+		int rport = args->getOptionAsInt( "rp" );
+		const char* raddr = args->getOptionAsString( "ra" );
+		int id = args->getOptionAsInt( "i" );
+		int myport = args->getOptionAsInt( "p" );
 	
 		signal( SIGPIPE, SIG_IGN );
+
+		log( LOG_INFO, "Use rs485 server at %s:%d, and query renogy device %d, serving on port %d", raddr, rport, id, myport );
 	
 		m_server_fd = Common::createTCPServerSocket( myport );
 		if ( m_server_fd >= 0 ) {
@@ -183,4 +186,9 @@ public:
 };
 
 ENTRYPOINT( Controller )
+DEFAULT_ARGS( 	"-ra:IP address of remote serial port controller:127.0.0.1"
+			  	"-rp:TCP port for serial controller:32700"
+				"-i:ID of charge controller to operate on:1"
+				"-p:TCP port to listen on:32701" )
+
 

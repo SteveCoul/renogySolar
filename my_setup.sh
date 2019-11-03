@@ -9,18 +9,18 @@
 # The communication channels of both controllers are wired in parallel to the PI.
 
 
-# Expose UART ( on currently hardcoded TCP port 32700 )
-./rs485-tcp /dev/ttyUSB0 &
+# Expose UART 
+./rs485-tcp -d /dev/ttyUSB0 -p 32700 -b 115200 -w 750&
 
 # Install controller access service for first controller to port 32701 using RS485-TCP on port 37000
-./controller_read 127.0.0.1 32700 1 32701&
+./controller_read -ra 127.0.0.1 -rp 32700 -i 1 -p 32701&
 
 # Install controller access service for second controller to port 32702 using RS485-TCP on port 37000
-./controller_read 127.0.0.1 32700 2 32702&
+./controller_read -ra 127.0.0.1 -rp 32700 -i 2 -p 32702&
 
 # Run a database logging task usinged RS485-TCP on port 37000 for both controllers and expose on port 32900
-./history 127.0.0.1 32700 32900 history.db 1 2&
+./history -ra 127.0.0.1 -rp 32700 -p 32900 -f history.db 1 2&
 
 # Serve the HTML/JS UI on port 80
-./webserver 80
+./webserver -p 80
 

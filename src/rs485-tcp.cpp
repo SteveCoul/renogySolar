@@ -114,35 +114,37 @@ public:
 	/// listen for connections, and each connection will handle a single MODBUS command:response pair
 	/// via transact().
 	///
-	/// \param	argc		Argument count from command line
-	/// \param	argv		Command line arguments
+	/// \param args	command arguments
 	///
 	/// \return app code.
 	///
 	static
-	int main( int argc, char** argv ) {
+	int main( Args* args ) {
 		int rc = 0;
 	
 		log( LOG_INFO, "Starting" );
-	
-		if ( argc < 2 ) { 
-			log( LOG_CRIT, "%s <ttydevicepath>\n", argv[0] );
-			return 1;
-		}
-	
-		const char* device = argv[1];
+
+		const char* device	=	args->getOptionAsString( "d" );
 		speed_t	baud		=	B115200;
-		unsigned int port	=	32700;
+		unsigned int port	=	args->getOptionAsUnsignedInt( "p" );
 		struct termios	term;
-		int wait_time = 100000;
-	
-		// FIXME : parse arguments to change config etc.
-		// FIXME : probably want configuration for data and stop size, and parity - for now assuming default of 8,N,1
-		//  	   as being what the adapter gives us and what we need :-)
-	
+		int wait_time = args->getOptionAsInt( "w" );
+
 		int m_serial_fd;
 		int m_server_fd;
-	
+
+		switch( args->getOptionAsInt( "b" ) ) {
+		case 115200:
+			baud = B115200;
+			break;
+		default:
+			baud = B115200;
+			log( LOG_WARNING, "Unknown baud rate, using 115200" );
+			break;
+		}
+
+		log( LOG_INFO, "Open device %s at baud rate %d, serve on port %d, use wait_time %d", device, args->getOptionAsInt("b"), port, wait_time );
+
 		m_serial_fd = ::open( device, O_RDWR | O_NDELAY | O_NOCTTY );
 		if ( m_serial_fd < 0 ) {
 			log( LOG_CRIT, "Failed to open %s [%s]\n", device, strerror(errno) );
@@ -207,5 +209,9 @@ public:
 };
 
 ENTRYPOINT( RS485TCP )
+DEFAULT_ARGS( 	"-d:path to serial port device:/dev/ttyUSB0"
+			  	"-p:TCP port to listen on:32700"
+				"-b:Baud Rate for Serial Port:115200"
+				"-w:Wait time on connect/disconnect:750" )
 
 

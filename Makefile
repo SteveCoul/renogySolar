@@ -1,29 +1,24 @@
 
-COPTS=-pedantic -Wall -Werror -std=c++11
+COPTS=-g -pedantic -Wall -Werror -std=c++11
 
-all:	rs485-tcp controller_read webserver history test
+all:	rs485-tcp controller_read webserver history
 
-webserver: src/webserver.cpp src/Common.cpp
-	cc $(COPTS) -o $@ $^
+webserver: src/webserver.cpp src/Common.cpp src/Args.cpp
+	c++ $(COPTS) -o $@ $^
 clean::
 	rm -f webserver
 
-test: src/test.cpp src/Common.cpp src/modbus.cpp
-	cc $(COPTS) -o $@ $^
-clean::
-	rm -f test
-	
-controller_read: src/controller_read.cpp src/Common.cpp src/modbus.cpp
-	cc $(COPTS) -o $@ $^
+controller_read: src/controller_read.cpp src/Common.cpp src/modbus.cpp src/Args.cpp
+	c++ $(COPTS) -o $@ $^
 clean::
 	rm -f controller_read
 
-rs485-tcp: src/rs485-tcp.cpp src/Common.cpp
-	cc $(COPTS) -o $@ $^
+rs485-tcp: src/rs485-tcp.cpp src/Common.cpp src/Args.cpp
+	c++ $(COPTS) -o $@ $^
 clean::
 	rm -f rs485-tcp
 
-history: src/history.cpp src/Common.cpp src/modbus.cpp src/HistoryTable.cpp
+history: src/history.cpp src/Common.cpp src/modbus.cpp src/HistoryTable.cpp src/Args.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 
 
 clean::

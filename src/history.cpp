@@ -26,14 +26,13 @@
 class History {
 public:
 static
-int main( int argc, char** argv ) {
-	int rport = atoi( argv[2] );
-	const char* raddr = argv[1];
-	/* args 4..argc are id's to read and log*/
+int main( Args* args ) {
+	int rport = args->getOptionAsInt( "rp" );
+	const char* raddr = args->getOptionAsString( "ra" );
 
-	int server = Common::createTCPServerSocket( atoi( argv[3] ) );
+	int server = Common::createTCPServerSocket( args->getOptionAsInt( "p" ) );
 
-	HistoryTable::cinit( argv[4] );
+	HistoryTable::cinit( args->getOptionAsString("f") );
 
 	HistoryTable* t_recent = new HistoryTable( "Recent" );
 	HistoryTable* t_minutes = new HistoryTable( "Minutes" );
@@ -101,9 +100,11 @@ int main( int argc, char** argv ) {
 		}
 
 		/* process */
-		for ( int i = 5; i < argc; i++ ) {
+		int num_devices = args->countList();
+
+		for ( int i = 0; i < num_devices; i++ ) {
 			modbus_data_value_t value[3];
-			int id = atoi( argv[i] );
+			int id = args->getListItemAsInt( i );
 
 			log( LOG_INFO, "------- read device %d -------", id );
 
@@ -133,4 +134,11 @@ int main( int argc, char** argv ) {
 };
 
 ENTRYPOINT( History )
+DEFAULT_ARGS( 	"-ra:IP address of remote serial port controller:127.0.0.1"
+			  	"-rp:TCP port for serial controller:32700"
+				"-p:TCP port to listen on:32900" 
+				"-f:Database file:history.db"
+				"--:list of charge controller IDs to work on" )
+
+
 

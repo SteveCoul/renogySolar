@@ -21,11 +21,11 @@
 class WebServer {
 public:
 static
-int main( int argc, char** argv ) {
+int main( Args* args ) {
 
 	// FIXME proper arg parsing
 	int m_server_fd;
-	int myport = atoi(argv[1]);
+	int myport = args->getOptionAsInt( "p" );
 
 	m_server_fd = Common::createTCPServerSocket( myport );
 	if ( m_server_fd > 0 ) {
@@ -78,4 +78,5 @@ int main( int argc, char** argv ) {
 };
 
 ENTRYPOINT( WebServer )
+DEFAULT_ARGS( "-p:TCP port to listen on:8080" )
 

@@ -12,15 +12,62 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include "Args.hpp"
 #include "Common.hpp"
 
-static int LOG_ALERT_enabled = 1;
-static int LOG_CRIT_enabled = 1;
-static int LOG_ERR_enabled = 1;
-static int LOG_WARNING_enabled = 1;
-static int LOG_NOTICE_enabled = 1;
-static int LOG_INFO_enabled = 1;
+static int LOG_ALERT_enabled = 0;
+static int LOG_CRIT_enabled = 0;
+static int LOG_ERR_enabled = 0;
+static int LOG_WARNING_enabled = 0;
+static int LOG_NOTICE_enabled = 0;
+static int LOG_INFO_enabled = 0;
 static int LOG_DEBUG_enabled = 0;
+
+static
+void configureLogging( void ) {
+	const char* e = getenv( "RENOGY_DEBUG" );
+	if ( e == NULL ) e = "EWN";
+
+	/* These are always on */
+	LOG_ALERT_enabled = 1;	
+	LOG_CRIT_enabled = 1;
+
+	/* These maybe */
+	for ( int i = 0; e[i] != '\0'; i++ ) {
+		switch( e[i] ) {
+		case 'e':	
+		case 'E':
+			LOG_ERR_enabled = 1;
+			break;
+		case 'w':	
+		case 'W':
+			LOG_WARNING_enabled = 1;
+			break;
+		case 'n':	
+		case 'N':
+			LOG_NOTICE_enabled = 1;
+			break;
+		case 'i':	
+		case 'I':
+			LOG_INFO_enabled = 1;
+			break;
+		case 'd':	
+		case 'D':
+			LOG_DEBUG_enabled = 1;
+			break;
+		case '*':
+			LOG_ERR_enabled = 1;
+			LOG_WARNING_enabled = 1;
+			LOG_NOTICE_enabled = 1;
+			LOG_INFO_enabled = 1;
+			LOG_DEBUG_enabled = 1;
+			break;
+		default:
+			/* ignore unknown values */
+			break;
+		}
+	}
+}
 
 static
 unsigned long long NOW( void ) {
@@ -38,6 +85,8 @@ int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 	struct pollfd pfd;
 	unsigned long long start_time = NOW();
 	int rc = 0;
+
+	log( LOG_DEBUG, "Timed Read %d", length );
 
 	for (;;) {
 
@@ -70,12 +119,14 @@ int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 				rc = -1;
 				break;
 			}
+			log( LOG_DEBUG, "Timed Read got %d wanted %d", ret, to_read );
 
 			rc+=ret;
 			ptr+=ret; 
 		}
 	}
 
+	log( LOG_DEBUG, "Timed Read took %llu ms", NOW() - start_time );
 	return rc;
 }
 
@@ -258,13 +309,19 @@ reboot:
 		log( LOG_CRIT, "Failed to fork on start" );
 		rc = -1;
 	} else if ( pid == (pid_t) 0 ) {
-		openlog( NULL, LOG_PID | LOG_PERROR, LOG_USER );
+		openlog( NULL, LOG_PERROR, LOG_USER );
+		configureLogging();
 		log( LOG_NOTICE, "Started" );
-		getclass()( argc, argv );
-		rc = 0;
+		Args args;
+		rc = args.process( argc, argv, defaultargs() );
+		if ( rc >= 0 ) {
+			getclass()(&args);
+			rc = 0;
+		}
 	} else {
 		int finished = 0;
-		openlog( NULL, LOG_PID | LOG_PERROR, LOG_USER );
+		openlog( NULL, LOG_PERROR, LOG_USER );
+		configureLogging();
 		pid = wait( &rc );
 		if ( pid == (pid_t)-1 ) {
 			log( LOG_CRIT, "wait() failed. should consider a reboot" );

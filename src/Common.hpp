@@ -3,6 +3,8 @@
 
 #include <syslog.h>
 
+#include "Args.hpp"
+
 class Common {
 public:
 	static void log( int level, const char* fmt, ... );
@@ -15,9 +17,12 @@ public:
 	static int timedRead( int fd, void* buffer, size_t length, int timeout_ms );
 };
 
-typedef int (*bootstrap)( int argc, char** argv );
+typedef int (*bootstrap)( Args* args );
 bootstrap getclass( void );
+const char* defaultargs( void );
+
 #define ENTRYPOINT( app ) bootstrap getclass( void ) { return app::main; }
+#define DEFAULT_ARGS( text ) const char* defaultargs( void ) { return text; }
 
 #define log Common::log
 
