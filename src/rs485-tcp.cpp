@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 #include <termios.h>
@@ -60,6 +61,12 @@ public:
 						log( LOG_WARNING, "client read error [%s]\n", strerror(errno) );
 						break;
 					}
+
+					char* dbg = NULL;
+					Common::mprintf(&dbg, "< ");
+					for ( int i = 0; i < len; i++ ) Common::mprintf(&dbg," %02X", buffer[i] );
+					log( LOG_DEBUG, dbg );
+					free( (void*)dbg );
 	
 					if ( write( serial_fd, buffer, len ) != len ) {
 						log( LOG_WARNING, "serial write problemette\n" );
@@ -77,6 +84,12 @@ public:
 						log( LOG_ERR, "serial read error [%s]\n", strerror(errno) );
 						break;
 					}
+	
+					char* dbg = NULL;
+					Common::mprintf(&dbg, "> ");
+					for ( int i = 0; i < len; i++ ) Common::mprintf(&dbg," %02X", buffer[i] );
+					log( LOG_DEBUG, dbg );
+					free( (void*)dbg );
 	
 					if ( write( client_fd, buffer, len ) != len ) {
 						log( LOG_WARNING, "client write problemette\n" );
@@ -121,7 +134,7 @@ public:
 		speed_t	baud		=	B115200;
 		unsigned int port	=	32700;
 		struct termios	term;
-		int wait_time = 750;
+		int wait_time = 100000;
 	
 		// FIXME : parse arguments to change config etc.
 		// FIXME : probably want configuration for data and stop size, and parity - for now assuming default of 8,N,1
@@ -173,12 +186,7 @@ public:
 								log( LOG_ERR, "accept() failed [%s]\n", strerror(errno) );
 							}  else {
 								log( LOG_DEBUG,"  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
-	
-								if ( ::tcflush( m_serial_fd, TCIFLUSH ) < 0 ) {
-									log( LOG_WARNING, "Failed iflush : %s\n", strerror(errno) );
-									// We won't quit - just means the client may get some unexpected responses for a bit. shrug.
-								}
-	
+
 								transact( client_fd, m_serial_fd, wait_time );
 	
 								log( LOG_DEBUG, "client closed" );
