@@ -20,7 +20,7 @@
 
 #include "Common.hpp"
 #include "HistoryTable.hpp"
-#include "modbus.hpp"
+#include "ModBus.hpp"
 #include "renogy.hpp"
 
 class History {
@@ -103,10 +103,13 @@ int main( Args* args ) {
 		int num_devices = args->countList();
 
 		for ( int i = 0; i < num_devices; i++ ) {
-			modbus_data_value_t value[3];
+
+			ModBus::Value	value[3];
 			int id = args->getListItemAsInt( i );
 
 			log( LOG_INFO, "------- read device %d -------", id );
+
+			ModBus modbus( raddr, rport, id );
 
 			time_t	now;
 			struct tm* tm;
@@ -121,10 +124,10 @@ int main( Args* args ) {
 							tm->tm_min,
 							tm->tm_sec);
 
-			(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
-			float input_voltage = value[0].asFloat;
-			(void)modbusReadVariable( raddr, rport, id, RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
-			float input_current = value[0].asFloat;
+			(void)modbus.readVariable( RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
+			float input_voltage = value[0].asFloat();
+			(void)modbus.readVariable( RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
+			float input_current = value[0].asFloat();
 
 			t_recent->addRecord( time(NULL), id, input_voltage, input_current );
 		}

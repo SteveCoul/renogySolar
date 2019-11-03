@@ -8,7 +8,7 @@ webserver: src/webserver.cpp src/Common.cpp src/Args.cpp
 clean::
 	rm -f webserver
 
-controller_read: src/controller_read.cpp src/Common.cpp src/modbus.cpp src/Args.cpp
+controller_read: src/controller_read.cpp src/Common.cpp src/ModBus.cpp src/Args.cpp
 	c++ $(COPTS) -o $@ $^
 clean::
 	rm -f controller_read
@@ -18,7 +18,7 @@ rs485-tcp: src/rs485-tcp.cpp src/Common.cpp src/Args.cpp
 clean::
 	rm -f rs485-tcp
 
-history: src/history.cpp src/Common.cpp src/modbus.cpp src/HistoryTable.cpp src/Args.cpp
+history: src/history.cpp src/Common.cpp src/ModBus.cpp src/HistoryTable.cpp src/Args.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 
 
 clean::
