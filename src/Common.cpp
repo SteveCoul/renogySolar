@@ -69,8 +69,7 @@ void configureLogging( void ) {
 	}
 }
 
-static
-unsigned long long NOW( void ) {
+unsigned long long Common::NOWms( void ) {
 	struct timeval tv;
 	unsigned long long rc;
 	(void)gettimeofday( &tv, NULL );
@@ -83,7 +82,7 @@ unsigned long long NOW( void ) {
 int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 	unsigned char* ptr = (unsigned char*)buffer;
 	struct pollfd pfd;
-	unsigned long long start_time = NOW();
+	unsigned long long start_time = NOWms();
 	int rc = 0;
 
 	log( LOG_DEBUG, "Timed Read %d", length );
@@ -102,7 +101,7 @@ int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 		if ( timeout_ms < 0 ) {
 			to = -1;
 		} else {
-			to = NOW() - start_time;
+			to = NOWms() - start_time;
 			if ( to > timeout_ms ) {
 				errno = ETIMEDOUT;
 				rc = -1;
@@ -126,7 +125,7 @@ int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 		}
 	}
 
-	log( LOG_DEBUG, "Timed Read took %llu ms", NOW() - start_time );
+	log( LOG_DEBUG, "Timed Read took %llu ms", NOWms() - start_time );
 	return rc;
 }
 

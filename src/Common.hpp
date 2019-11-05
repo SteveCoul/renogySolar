@@ -7,6 +7,7 @@
 
 class Common {
 public:
+	static unsigned long long NOWms( void );
 	static void log( int level, const char* fmt, ... );
 	static int mprintf( char** pp, const char* fmt, ... );
 	static int tcpAccept( int server );
