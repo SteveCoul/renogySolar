@@ -13,7 +13,7 @@ controller_read: src/controller_read.cpp src/Common.cpp src/ModBus.cpp src/Args.
 clean::
 	rm -f controller_read
 
-rs485-tcp: src/rs485-tcp.cpp src/Common.cpp src/Args.cpp
+rs485-tcp: src/rs485-tcp.cpp src/Common.cpp src/Args.cpp src/SerialPort.cpp
 	c++ $(COPTS) -o $@ $^
 clean::
 	rm -f rs485-tcp
