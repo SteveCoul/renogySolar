@@ -5,7 +5,16 @@
 
 		var g_rated_power = 400.0;
 		var controller_id = 0;
-		var relative_graph = 1;
+		var relative_graph = 0;
+
+		function toggleGraphMode() {
+			if ( relative_graph ) {
+				relative_graph = 0;
+			} else {
+				relative_graph = 1;
+			}
+			reload();
+		}
 
 		function makeGraph( title, xlabel, ylabel, canvas, xaxis, yaxis ) {
 
@@ -335,13 +344,16 @@
 				e.width = stored_width;
 				e.height = stored_height;
 			}
-
 			/* For now, expire all graphs on zoom/revert so they get reloaded */
+			reload();
+		}
+
+		function reload() {
 			counter_recent = limit_recent;
 			counter_minutes = limit_minutes;
 			counter_hours = limit_hours;
 			counter_days = limit_days;
-
+			update();
 			//window.top.postMessage( document.location.search.substring(1), "*" );
 		}
 
@@ -418,7 +430,9 @@
 						</TR>
 					</TABLE>
 				</TD>
-				<TD></TD>
+				<TD>
+					<BUTTON type="button" ID="graphmodebutton" onclick="toggleGraphMode();">Toggle Graph Mode</BUTTON>
+				</TD>
 				<TD></TD>
 		</TR>
 		<TR>
