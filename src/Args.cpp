@@ -36,7 +36,7 @@ int Args::process( int argc, char** argv, const char* default_args ) {
 	m_help.clear();
 	m_list.clear();
 
-	parseDefaults( "-single:Run task as a single process rather than using the bootstrap code:" );
+	parseDefaults( "-single:Run task as a single process rather than using the bootstrap code:#" );
 	parseDefaults( default_args );
 
 	// check for help
@@ -131,7 +131,7 @@ void Args::parseDefaults( const char* default_args ) {
 		/* trusted client :-) no error checking */
 		m_option.push_back( std::string( n ) );
 		m_help.push_back( std::string( t ) );
-		if ( d == NULL ) {
+		if ( d[0] == '#' ) {
 			m_default.push_back( std::string( PLACEHOLDER_FOR_BOOLEAN ) );
 			m_value.push_back( std::string( "0" ) );
 		} else {
