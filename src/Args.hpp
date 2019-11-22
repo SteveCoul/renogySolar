@@ -19,6 +19,7 @@ public:
 	int countList( void );
 	const char* getListItem( unsigned int idx );
 	int getListItemAsInt( unsigned int idx );
+	bool getListItemAsBoolean( unsigned int idx );
 private:
 	void showHelp( const char* appname );
 	void parseDefaults( const char* default_args );
