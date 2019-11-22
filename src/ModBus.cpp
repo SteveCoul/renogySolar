@@ -37,7 +37,7 @@ int ModBus::writeComplete( int fd, unsigned char* buffer, int len ) {
 }
 
 int ModBus::readComplete( int fd, unsigned char* buffer, int len ) {
-	int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 300 );	/* todo, make timeout configurable */
+	int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 350 );	/* todo, make timeout configurable */
 	if ( rc < 0 ) {
 		log( LOG_WARNING, "modbus transaction reply didn't return [%s]", strerror(errno) );
 	}
