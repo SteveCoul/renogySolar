@@ -67,6 +67,15 @@ void configureLogging( void ) {
 			break;
 		}
 	}
+
+	syslog( LOG_INFO, "Logging Configured Alert=%s, Critical=%s, Error=%s, Warning=%s, Notice=%s, Info=%s, Debug=%s",
+						LOG_ALERT_enabled ? "on" : "off",
+						LOG_CRIT_enabled ? "on" : "off",
+						LOG_ERR_enabled ? "on" : "off",
+						LOG_WARNING_enabled ? "on" : "off",
+						LOG_NOTICE_enabled ? "on" : "off",
+						LOG_INFO_enabled ? "on" : "off",
+						LOG_DEBUG_enabled ? "on" : "off" );
 }
 
 unsigned long long Common::NOWms( void ) {
@@ -131,27 +140,36 @@ int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
 
 void Common::log( int level, const char* fmt, ... ) {
 	int output = 0;
+	const char* output_prefix;
+
 	switch( level ) {
 	case LOG_ALERT:
 		output = LOG_ALERT_enabled;
+		output_prefix="A";
 		break;
 	case LOG_CRIT:
 		output = LOG_CRIT_enabled;
+		output_prefix="C";
 		break;
 	case LOG_ERR:
 		output = LOG_ERR_enabled;
+		output_prefix="E";
 		break;
 	case LOG_WARNING:
 		output = LOG_WARNING_enabled;
+		output_prefix="W";
 		break;
 	case LOG_NOTICE:
 		output = LOG_NOTICE_enabled;
+		output_prefix="N";
 		break;
 	case LOG_INFO:
 		output = LOG_INFO_enabled;
+		output_prefix="I";
 		break;
 	case LOG_DEBUG:
 		output = LOG_DEBUG_enabled;
+		output_prefix="D";
 		break;
 	default:
 		output = 0;
@@ -159,10 +177,13 @@ void Common::log( int level, const char* fmt, ... ) {
 	}
 
 	if ( output ) {
+		char* new_fmt = NULL;
+		mprintf( &new_fmt, "[%s] %s", output_prefix, fmt );
 		va_list args;
 		va_start( args, fmt );
-		vsyslog( level, fmt, args );
+		vsyslog( level, new_fmt, args );
 		va_end( args );
+		(void)free( (void*)new_fmt );
 	}
 }
 
