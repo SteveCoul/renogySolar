@@ -335,8 +335,7 @@ reboot:
 		Args args;
 		rc = args.process( argc, argv, defaultargs() );
 		if ( rc >= 0 ) {
-			getclass()(&args);
-			rc = 0;
+			rc = getclass()(&args);
 		}
 	} else {
 		int finished = 0;
