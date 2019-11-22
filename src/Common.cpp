@@ -347,7 +347,11 @@ reboot:
 		} else if ( WIFEXITED( rc ) ) {
 			log( LOG_NOTICE, "Child exited normally with %d", WEXITSTATUS( rc ) );
 			rc = WEXITSTATUS( rc );
-			finished = 1;
+			if ( rc == 0 ) {
+				finished = 1;
+			} else {
+				sleep(5);
+			}
 		} else if ( WIFSIGNALED( rc ) ) {
 			log( LOG_NOTICE, "Child exited with signal %d", WTERMSIG( rc ) );
 			if ( WCOREDUMP( rc ) ) {
