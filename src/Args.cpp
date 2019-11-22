@@ -81,8 +81,8 @@ int Args::getListItemAsInt( unsigned int idx ) {
 	return atoi( getListItem( idx ) );
 }
 
-bool Args::getListItemAsBoolean( unsigned int idx ) {
-	const char* i = getListItem( idx );
+bool Args::getOptionAsBoolean( const char* what ) {
+	const char* i = getOptionAsString( what );
 	bool rc = false;
 	if ( i ) {
 		if ( stricmp( i, "true" ) == 0 ) rc = true;

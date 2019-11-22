@@ -322,9 +322,17 @@ char* Common::mReadLine( int fd ) {			// FIXME
 int main( int argc, char** argv ) {
 	int rc = 0;
 	pid_t pid;
+	Args args;
+	rc = args.process( argc, argv, defaultargs() );
+	if ( rc < 0 ) return rc;
 
 reboot:
-	pid = fork();
+	if ( args.getOptionAsBoolean("single") ) {
+		pid = (pid_t)0;
+		log( LOG_NOTICE, "Running single process mode, no bootstrap" );	// not printed, log not option yet
+	} else {
+		pid = fork();
+	}
 	if ( pid == (pid_t)-1 ) {
 		log( LOG_CRIT, "Failed to fork on start" );
 		rc = -1;
@@ -332,11 +340,7 @@ reboot:
 		openlog( NULL, LOG_PERROR, LOG_USER );
 		configureLogging();
 		log( LOG_NOTICE, "Started" );
-		Args args;
-		rc = args.process( argc, argv, defaultargs() );
-		if ( rc >= 0 ) {
-			rc = getclass()(&args);
-		}
+		rc = getclass()(&args);
 	} else {
 		int finished = 0;
 		openlog( NULL, LOG_PERROR, LOG_USER );
