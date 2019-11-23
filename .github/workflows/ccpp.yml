@@ -12,5 +12,5 @@ jobs:
     - name: SQLite
     - run: apt-get install libsqlite3-dev
     - name: make
-      run: make
+    - run: make
   
