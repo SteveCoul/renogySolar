@@ -9,6 +9,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: SQLite
+    - run: apt-get install libsqlite3-dev
     - name: make
       run: make
   
