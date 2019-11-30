@@ -201,6 +201,8 @@ int Common::mprintf( char** pp, const char* fmt, ... ) {
     int nl = vsnprintf( n, 0, fmt, args );
     va_end( args );
 
+    free( (void*)n );
+
     int ol = 0;
     if ( pp[0] != NULL ) ol = strlen( pp[0] );
 
