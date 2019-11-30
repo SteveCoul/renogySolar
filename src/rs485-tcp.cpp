@@ -7,8 +7,6 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 
 #include "Common.hpp"
 #include "SerialPort.hpp"
@@ -53,17 +51,11 @@ public:
                 log( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
                 rc = 5;
             } else {
-                while(1) {      // No way or need to quit atm
-    
+                while( Common::shouldQuit() == 0 ) {    
                     log( LOG_DEBUG, "Server waiting for client connect" );
-                    struct sockaddr_in  sai;
-                    socklen_t sai_len = sizeof(sai);
-                    memset( &sai, 0, sizeof(sai) );
-                    int client_fd = accept( m_server_fd, (struct sockaddr*)&sai, &sai_len );
-                    if ( client_fd < 0 ) {
-                        log( LOG_ERR, "accept() failed [%s]\n", strerror(errno) );
-                    }  else {
-                        log( LOG_DEBUG,"  Client %d %08X\n", client_fd, ntohl( sai.sin_addr.s_addr ) );
+                    int client_fd = Common::tcpAccept( m_server_fd );
+                    if ( client_fd >= 0 ) {
+                        log( LOG_DEBUG,"  Client %d\n", client_fd );
 
                         usleep(wait_time);
                         (void)serial.transact( client_fd, -1 );
