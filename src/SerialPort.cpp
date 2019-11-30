@@ -85,7 +85,7 @@ int SerialPort::transact( int fd, int time_out ) {
 
     for (;;) {
         unsigned long long now = Common::NOWms();
-        int how_long = -1;
+        int how_long;
 
         if ( time_out >= 0 ) { 
             if ( ( now-start_time) > (unsigned)time_out ) {
@@ -95,6 +95,8 @@ int SerialPort::transact( int fd, int time_out ) {
             }
 
             how_long = time_out - ( now-start_time );
+        } else {
+            how_long = 300;
         }
 
         struct pollfd pfd[2];
@@ -110,6 +112,12 @@ int SerialPort::transact( int fd, int time_out ) {
             rc = -1;
             break;
         } else {
+
+            if ( Common::shouldQuit() ) {
+                errno = EINTR;
+                rc = -1;
+                break;
+            }
             unsigned char buffer[1024];
             int len;
     
