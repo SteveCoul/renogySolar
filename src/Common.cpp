@@ -7,6 +7,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <sys/poll.h>
+#include <sys/signal.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
@@ -15,6 +16,7 @@
 #include "Args.hpp"
 #include "Common.hpp"
 
+static int should_quit = 0;
 static int LOG_ALERT_enabled = 0;
 static int LOG_CRIT_enabled = 0;
 static int LOG_ERR_enabled = 0;
@@ -22,6 +24,10 @@ static int LOG_WARNING_enabled = 0;
 static int LOG_NOTICE_enabled = 0;
 static int LOG_INFO_enabled = 0;
 static int LOG_DEBUG_enabled = 0;
+
+int Common::shouldQuit( void ) {
+    return should_quit;
+}
 
 static
 void configureLogging( void ) {
@@ -208,13 +214,40 @@ int Common::mprintf( char** pp, const char* fmt, ... ) {
 }
 
 int Common::tcpAccept( int server ) {
-    int rc;
+    int rc = -1;
     struct sockaddr_in sai;
     socklen_t sai_len = sizeof(sai);
     memset( &sai, 0, sizeof(sai) );
-    rc = accept( server, (struct sockaddr*)&sai, &sai_len );
-    if ( rc < 0 ) {
-        log( LOG_ERR, "Failed to accept tcp connection [%s]", strerror(errno) );
+
+    struct pollfd pfd;
+    pfd.fd = server;
+    pfd.events = POLLIN | POLLHUP;
+    for (;;) {
+        pfd.revents = 0;
+
+        int ret = poll( &pfd, 1, 300 );
+  
+        if ( ret < 0 ) {
+            rc = ret;
+            break;
+        }
+ 
+        if ( Common::shouldQuit() ) {
+            rc = -1;
+            errno = EINTR;
+            break;
+        }
+ 
+        if ( pfd.revents & POLLIN ) {
+            rc = accept( server, (struct sockaddr*)&sai, &sai_len );
+            if ( rc < 0 ) {
+                log( LOG_ERR, "Failed to accept tcp connection [%s]", strerror(errno) );
+            }
+            break;
+        }
+        if ( pfd.revents & POLLHUP ) {
+            break;
+        }   
     }
     return rc;
 }
@@ -319,6 +352,12 @@ char* Common::mReadLine( int fd ) {         // FIXME
     return rc;
 }
 
+static
+void quit_handler( int sig ) {
+    log( LOG_NOTICE, "SIGINT" );
+    should_quit = 1;
+}
+
 int main( int argc, char** argv ) {
     int rc = 0;
     pid_t pid;
@@ -337,6 +376,7 @@ reboot:
         log( LOG_CRIT, "Failed to fork on start" );
         rc = -1;
     } else if ( pid == (pid_t) 0 ) {
+        signal( SIGINT, quit_handler );
         openlog( NULL, LOG_PERROR, LOG_USER );
         configureLogging();
         log( LOG_NOTICE, "Started" );
