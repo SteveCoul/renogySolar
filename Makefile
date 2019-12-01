@@ -1,5 +1,5 @@
 
-COPTS=-g -pedantic -Wall -Werror -std=c++11
+COPTS=-g -pedantic -Wall -Werror -std=c++11 -static -pthread 
 
 all:	rs485-tcp controller_read webserver history
 
@@ -19,7 +19,7 @@ clean::
 	rm -f rs485-tcp
 
 history: src/history.cpp src/Common.cpp src/ModBus.cpp src/HistoryTable.cpp src/Args.cpp
-	c++ $(COPTS) -o $@ $^ -lsqlite3 
+	c++ $(COPTS) -o $@ $^ -lsqlite3 -ldl
 
 clean::
 	rm -f history
