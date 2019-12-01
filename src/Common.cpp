@@ -295,8 +295,12 @@ void Common::waitForTCPHangup( int fd ) {
     for (;;) {
         pfd.revents = 0;
 
-        int ret = poll( &pfd, 1, -1 );
+        int ret = poll( &pfd, 1, 333 );
     
+        if ( Common::shouldQuit() ) {
+            break;
+        }
+
         if ( pfd.revents & POLLIN ) {
             char buffer[1024];
             ret = read( fd, buffer, sizeof(buffer) );
