@@ -26,6 +26,11 @@ Args::Args() {
 }
 
 Args::~Args() {
+    m_option.clear();
+    m_value.clear();
+    m_default.clear();
+    m_help.clear();
+    m_list.clear();
 }
 
 int Args::process( int argc, char** argv, const char* default_args ) {
