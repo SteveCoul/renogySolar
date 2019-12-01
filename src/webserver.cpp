@@ -23,13 +23,12 @@ public:
 static
 int main( Args* args ) {
 
-    // FIXME proper arg parsing
     int m_server_fd;
     int myport = args->getOptionAsInt( "p" );
 
     m_server_fd = Common::createTCPServerSocket( myport );
     if ( m_server_fd > 0 ) {
-        while(1) {      // No way or need to quit atm
+        while( Common::shouldQuit() == 0 ) {
             int client_fd = Common::tcpAccept( m_server_fd );
             if ( client_fd > 0 ) {
                 char* line = Common::mReadLine( client_fd );
