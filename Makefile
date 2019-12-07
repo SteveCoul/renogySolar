@@ -1,5 +1,5 @@
 
-COPTS=-g -pedantic -Wall -Werror -std=c++11 -static -pthread 
+COPTS=-g -pedantic -Wall -Werror -std=c++11 -pthread 
 
 all:	rs485-tcp controller_read webserver history
 

@@ -30,9 +30,9 @@ runapp() {
 }
 
 rm -rf *.debug.log
-runapp n rs485-tcp -d /dev/ttyUSB0 -p 32700 -b 115200 -w 750
-runapp n controller_read -ra 127.0.0.1 -rp 32700 -i 1 -p 32701
-runapp n controller_read -ra 127.0.0.1 -rp 32700 -i 2 -p 32702
+runapp y rs485-tcp -d /dev/ttyUSB0 -p 32700 -b 115200 -w 750
+runapp y controller_read -ra 127.0.0.1 -rp 32700 -i 1 -p 32701
+runapp y controller_read -ra 127.0.0.1 -rp 32700 -i 2 -p 32702
 runapp y history -ra 127.0.0.1 -rp 32700 -p 32900 -f history.db 1 2
-runapp n webserver -p 8080
+runapp y webserver -p 8080
 wait
