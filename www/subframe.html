@@ -199,6 +199,20 @@
 			document.getElementById( name ).innerHTML = value;
 		}
 
+        function colorizeValue() {
+            var item = arguments[0];
+            var value = parseFloat( document.getElementById( item ).innerHTML );
+            var color = arguments[ arguments.length-1 ];
+
+            for ( var idx = 1; idx < arguments.length-1; idx += 3 ) {
+                if ( ( value >= arguments[idx] ) && ( value <= arguments[idx+1] ) ) {
+                    color = arguments[idx+2];                   
+                }
+            }
+
+            document.getElementById( item ).style.color = color;
+        }
+
 		function decodeTime( t ) {
 			var rc = t.substring(5);
 			return rc.replace('-', '/' );
@@ -259,6 +273,8 @@
 			set( "now_power",   getField2( this.responseXML, "pv_array_now", "power" ) + " w");
 
 			set( "battery_voltage", 		getField2( this.responseXML, "battery", "voltage" ) + " v");
+            colorizeValue( "battery_voltage", 0, 12.69, "red", 12.7, 13.0, "orange", 13.1, 13.9, "yellow", "green" );
+
 			set( "battery_current", 		getField2( this.responseXML, "battery", "current" ) + " a");
 			set( "battery_state_of_charge", getField2( this.responseXML, "battery", "state_of_charge" ) + " %");
 			set( "battery_net_current", 	getField2( this.responseXML, "battery", "net_current" ) + " a");
