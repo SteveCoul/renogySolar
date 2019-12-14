@@ -5,6 +5,10 @@ body {
 	font-family: Arial;
 }
 
+hr {
+    border-color: #4488CC;
+}
+
 th {
 	border: none;
 }
@@ -16,9 +20,19 @@ td {
 }
 
 button {
+	background-image: linear-gradient( to bottom right, #FFFFFF, #CCCCCC );
 	font-size: 20px;
 	color: #4488CC;
-    
+    border-radius: 8px;
+    border-top-color: #4488CC;
+    border-left-color: #4488CC;
+    border-right-color: #4488CC;
+    border-bottom-color: #4488CC;
+}
+
+.graph {
+	background-image: linear-gradient( to bottom right, #FFFFFF, #666666 );
+    color: #224488;
 }
 
 .tableaxislabel {

@@ -28,28 +28,23 @@
 			var height = canvas_height;
 			var gradient;
 
-			gradient = ctx.createLinearGradient(0,0, 0, canvas_height);
-			gradient.addColorStop( 0, "#666666" );
-			gradient.addColorStop( 1, "#FFFFFF" );
-			ctx.fillStyle = gradient;
-			ctx.fillRect( 0, 0, canvas_width, canvas_height );
+            ctx.clearRect( 0, 0, canvas_width, canvas_height );
 
 			ctx.font = "" + ( canvas_height / 20 ) + "pt Arial";
 			ctx.textAlign = "center";
 			var size = ctx.measureText( title );	
-			ctx.fillStyle = "#2020CC";
+			ctx.fillStyle = getComputedStyle( canvas ).color;
 			ctx.fillText( title, canvas_width/2, size.emHeightAscent );
 			top += ( size.emHeightAscent + size.emHeightDescent );
 			height -= ( size.emHeightAscent + size.emHeightDescent );
 
-			ctx.fillStyle = "#4040CC";
-
+			ctx.fillStyle = getComputedStyle( canvas ).color;
 			size = ctx.measureText( xlabel );
 			ctx.fillText( xlabel, canvas_width / 2, canvas_height - size.emHeightDescent );
 			height -= ( size.emHeightAscent + size.emHeightDescent );
 
 			ctx.save();
-			size = ctx.measureText( ylabel );
+			ctx.fillStyle = getComputedStyle( canvas ).color;
 			ctx.rotate( -Math.PI / 2 );
 			ctx.fillText( ylabel, -(canvas_height/2), size.emHeightAscent );
 			left += ( size.emHeightAscent + size.emHeightDescent );
@@ -103,7 +98,7 @@
 			ctx.fillText( bottom_label, left+w1, top+height-size.emHeightDescent );
 
 			ctx.lineWidth = 1;
-			ctx.strokeStyle = "black";
+			ctx.strokeStyle = getComputedStyle( canvas ).color;
 			ctx.beginPath();
 			ctx.moveTo( left+(w1*1.05), top );
 			ctx.lineTo( left+(w1*1.05), top+height-1 );
@@ -114,9 +109,6 @@
 
 			left += w1;
 			width -= w1;
-
-//			ctx.fillStyle = "red";
-//			ctx.fillRect( left, t*1.05)op, width, height );
 
 			var x = left;
 			var dx = width / xaxis.length;
@@ -129,7 +121,7 @@
 				ctx.fillRect( x, y, dx, h );
 
 				ctx.lineWidth = 1;
-				ctx.strokeStyle = "black";
+			    ctx.strokeStyle = "black";
 				ctx.beginPath();
 				ctx.rect( x, y, dx, h );
 				ctx.stroke();
@@ -146,13 +138,13 @@
 				}
 
 				if ( draw ) {
-					ctx.fillStyle = "#4040CC";
+			        ctx.fillStyle = getComputedStyle( canvas ).color;
 					ctx.rotate( -Math.PI / 2 );
 					ctx.textAlign = "right";
 					ctx.fillText( xaxis[i], -(top+height), x+size.emHeightAscent );	// todo - adjust alignment.
-					ctx.restore();
 				}
 
+				ctx.restore();
 				x+=dx;
 			}
 			
@@ -454,13 +446,13 @@
 			</TD>
 		</TR>
 		<TR>
-			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS CLASS="graph" ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
-			<TD ALIGN="center" ID="graphic_minutes_parent"><CANVAS ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_minutes_parent"><CANVAS CLASS="graph" ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
-			<TD ALIGN="center" ID="graphic_hours_parent"><CANVAS ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_hours_parent"><CANVAS CLASS="graph" ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
 			<TD></TD>
-			<TD ALIGN="center" ID="graphic_days_parent"><CANVAS ID="graphic_days" onclick='zoom(this.id);'></CANVAS></TD>
+			<TD ALIGN="center" ID="graphic_days_parent"><CANVAS CLASS="graph" ID="graphic_days" onclick='zoom(this.id);'></CANVAS></TD>
 		</TR>
 	</TBODY></TABLE>
 </BODY>
