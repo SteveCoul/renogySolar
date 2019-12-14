@@ -363,77 +363,76 @@
 	<H2 ID="title">Loading...</H1>
 	<DIV ID="holder" STYLE="display=none;"></DIV>
 	<TABLE ID="content" STYLE="display=block;">
-		<TR>
-				<TD>
-					<TABLE>
-						<TR>
-							<TH class="tableaxislabel"/>
-							<TH class="tableaxislabel">PV Maximum Rating</TH>
-							<TH class="tableaxislabel">PV Status</TH>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">Voltage</TD>
-							<TD class="tablevalue"> <P ID="rated_voltage"/> </TD>
-							<TD class="tablevalue"> <P ID="now_voltage"/> </TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">Amps</TD>
-							<TD class="tablevalue"> <P ID="rated_current"/> </TD>
-							<TD class="tablevalue"> <P ID="now_current"/> </TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">Watts</TD>
-							<TD class="tablevalue"> <P ID="rated_power"/> </TD>
-							<TD class="tablevalue"> <P ID="now_power"/> </TD>
-						</TR>
-					</TABLE>
-				</TD>
-				<TD>
-				</TD>
-				<TD>
-					<TABLE>
-						<TR><TH class="tableaxislabel" COLSPAN="2">Battery</TH></TR>
-						<TR>
-							<TD class="tableaxislabel">Voltage</TD>
-							<TD class="tablevalue"> <P ID="battery_voltage"/> </TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">Current</TD>
-							<TD class="tablevalue"> <P ID="battery_current"/> </TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">Net Current</TD>
-							<TD class="tablevalue"> <P ID="battery_net_current"/> </TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">State Of Charge</TD>
-							<TD class="tablevalue"> <P ID="battery_state_of_charge"/> </TD>
-						</TR>
-					</TABLE>
-				</TD>
-				<TD>
-				</TD>
-				<TD>
-					<TABLE>
-						<TR><TH COLSPAN="2" class="tableaxislabel">Power Generation</TH></TR>
-						<TR>
-							<TD class="tableaxislabel">Today</TD>
-							<TD class="tablevalue"> <P ID="today"/></TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">This Month</TD>
-							<TD class="tablevalue"> <P ID="this_month"/></TD>
-						</TR>
-						<TR>
-							<TD class="tableaxislabel">This Year</TD>
-							<TD class="tablevalue"> <P ID="this_year"/></TD>
-						</TR>
-					</TABLE>
-				</TD>
-				<TD>
-					<BUTTON type="button" ID="graphmodebutton" onclick="toggleGraphMode();">Toggle Graph Mode</BUTTON>
-				</TD>
-				<TD></TD>
+	    <TR>
+			<TD>
+				<TABLE>
+					<TR>
+						<TH class="tableaxislabel"/>
+						<TH class="tableaxislabel">PV Maximum Rating</TH>
+						<TH class="tableaxislabel">PV Status</TH>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">Voltage</TD>
+						<TD class="tablevalue"> <P ID="rated_voltage"/> </TD>
+						<TD class="tablevalue"> <P ID="now_voltage"/> </TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">Amps</TD>
+						<TD class="tablevalue"> <P ID="rated_current"/> </TD>
+						<TD class="tablevalue"> <P ID="now_current"/> </TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">Watts</TD>
+						<TD class="tablevalue"> <P ID="rated_power"/> </TD>
+						<TD class="tablevalue"> <P ID="now_power"/> </TD>
+					</TR>
+				</TABLE>
+			</TD>
+			<TD>
+			</TD>
+			<TD>
+				<TABLE>
+					<TR><TH class="tableaxislabel" COLSPAN="2">Battery</TH></TR>
+					<TR>
+						<TD class="tableaxislabel">Voltage</TD>
+						<TD class="tablevalue"> <P ID="battery_voltage"/> </TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">Current</TD>
+						<TD class="tablevalue"> <P ID="battery_current"/> </TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">Net Current</TD>
+						<TD class="tablevalue"> <P ID="battery_net_current"/> </TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">State Of Charge</TD>
+						<TD class="tablevalue"> <P ID="battery_state_of_charge"/> </TD>
+					</TR>
+				</TABLE>
+			</TD>
+			<TD> </TD>
+			<TD>
+				<TABLE>
+					<TR><TH COLSPAN="2" class="tableaxislabel">Power Generation</TH></TR>
+					<TR>
+						<TD class="tableaxislabel">Today</TD>
+						<TD class="tablevalue"> <P ID="today"/></TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">This Month</TD>
+						<TD class="tablevalue"> <P ID="this_month"/></TD>
+					</TR>
+					<TR>
+						<TD class="tableaxislabel">This Year</TD>
+						<TD class="tablevalue"> <P ID="this_year"/></TD>
+					</TR>
+				</TABLE>
+			</TD>
+			<TD> </TD>
+			<TD>
+				<BUTTON type="button" ID="graphmodebutton" onclick="toggleGraphMode();">Toggle Graph Mode</BUTTON>
+			</TD>
 		</TR>
 		<TR>
 			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
