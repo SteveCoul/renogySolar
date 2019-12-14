@@ -362,14 +362,17 @@
 <BODY onload="update();">
 	<H2 ID="title">Loading...</H1>
 	<DIV ID="holder" STYLE="display=none;"></DIV>
-	<TABLE ID="content" STYLE="display=block;">
+	<TABLE ID="content" CLASS="datatable"><TBODY CLASS="datatable">
 	    <TR>
 			<TD>
 				<TABLE>
 					<TR>
+						<TH COLSPAN="3" class="tableaxislabel">Photovoltic Array</TH>
+					</TR>
+					<TR>
 						<TH class="tableaxislabel"/>
-						<TH class="tableaxislabel">PV Maximum Rating</TH>
-						<TH class="tableaxislabel">PV Status</TH>
+						<TH class="tableaxislabel">Rating</TH>
+						<TH class="tableaxislabel">Status</TH>
 					</TR>
 					<TR>
 						<TD class="tableaxislabel">Voltage</TD>
@@ -377,12 +380,12 @@
 						<TD class="tablevalue"> <P ID="now_voltage"/> </TD>
 					</TR>
 					<TR>
-						<TD class="tableaxislabel">Amps</TD>
+						<TD class="tableaxislabel">Current</TD>
 						<TD class="tablevalue"> <P ID="rated_current"/> </TD>
 						<TD class="tablevalue"> <P ID="now_current"/> </TD>
 					</TR>
 					<TR>
-						<TD class="tableaxislabel">Watts</TD>
+						<TD class="tableaxislabel">Power</TD>
 						<TD class="tablevalue"> <P ID="rated_power"/> </TD>
 						<TD class="tablevalue"> <P ID="now_power"/> </TD>
 					</TR>
@@ -443,7 +446,7 @@
 			<TD></TD>
 			<TD ALIGN="center" ID="graphic_days_parent"><CANVAS ID="graphic_days" onclick='zoom(this.id);'></CANVAS></TD>
 		</TR>
-	</TABLE>
+	</TBODY></TABLE>
 </BODY>
 <HTML>
 
