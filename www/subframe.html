@@ -1,6 +1,6 @@
 <HTML>
 <HEAD>
-<link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 	<SCRIPT>
 
 		var g_rated_power = 400.0;
@@ -365,9 +365,18 @@
 			//window.top.postMessage( document.location.search.substring(1), "*" );
 		}
 
+        function init() {
+            var ss = document.cookie.substring( document.cookie.indexOf('=')+1 );
+
+            var list = Array.from( document.getElementsByTagName("link") );
+                list.forEach(	function( e ) {
+                                e.href = ss;
+                            } );
+        }
+
 	</SCRIPT>
 </HEAD>
-<BODY onload="update();">
+<BODY onload="init(); update();">
 	<H2 ID="title">Loading...</H1>
 	<DIV ID="holder" STYLE="display=none;"></DIV>
 	<TABLE ID="content" CLASS="datatable"><TBODY CLASS="datatable">

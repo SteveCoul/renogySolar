@@ -39,6 +39,18 @@
 	}
 
 	function main() {
+
+        if ( document.cookie.length == 0 ) {
+            document.cookie = "style=style.css";
+        }
+
+        var ss = document.cookie.substring( document.cookie.indexOf('=')+1 );
+
+        var list = Array.from( document.getElementsByTagName("link") );
+            list.forEach(	function( e ) {
+                            e.href = ss;
+                        } );
+
 		for ( var i = 1; i < (number_of_controllers_to_look_for+1); i++ ) {
 			var name = "http://" + window.location.hostname + ":" + (32700+i) + "/data";
 			var req = new XMLHttpRequest();
@@ -95,6 +107,8 @@
 </HEAD>
 <BODY onload="main();">
 	<H1>Solar Farm Status</H1>
+    <BUTTON onclick="document.cookie='style=style.css'; location.reload();">Default Style</BUTTON>
+    <BUTTON onclick="document.cookie='style=dark_style.css'; location.reload();">Dark Style</BUTTON>
 	<HR>
 	<DIV ID="controller_parent"></DIV>
 	<HR>
