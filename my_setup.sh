@@ -18,8 +18,8 @@
 # Install controller access service for second controller to port 32702 using RS485-TCP on port 37000
 ./controller_read -ra 127.0.0.1 -rp 32700 -i 2 -p 32702&
 
-# Run a database logging task usinged RS485-TCP on port 37000 for both controllers and expose on port 32900
-./history -ra 127.0.0.1 -rp 32700 -p 32900 -f history.db 1 2&
+# Run a database logging task usinged RS485-TCP on port 37000 for both controllers and expose on port 33300
+./history -ra 127.0.0.1 -rp 32700 -p 33000 -f history.db 1 2&
 
 # Serve the HTML/JS UI on port 80
 ./webserver -p 80

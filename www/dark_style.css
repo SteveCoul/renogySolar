@@ -3,6 +3,7 @@ body {
 	background-color: black;
 	color: #88CCFF;
 	font-family: Arial;
+    font-size: 10;
 }
 
 hr {
@@ -21,7 +22,6 @@ td {
 
 button {
 	background-image: linear-gradient( to bottom right, #222222, #444444 );
-	font-size: 20px;
 	color: #88CCFF;
     border-radius: 8px;
     border-top-color: #88CCFF;
@@ -33,21 +33,22 @@ button {
 .graph {
 	background-image: linear-gradient( to bottom right, #000000, #222222 );
     color: white;
+    width: 100%;
 }
 
 .tableaxislabel {
 	background-image: linear-gradient( to bottom right, #222222, #444444 );
-	font-size: 20px;
 	color: #88CCFF;
 }
 
 .tablevalue {
 	text-align: right;
-	font-size: 20px;
 	color: #88CCFF;
 }
 
 .datatable {
     vertical-align: top;
+    table-layout: fixed;
+    width: 100%;
 }
 

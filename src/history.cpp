@@ -139,7 +139,7 @@ int main( Args* args ) {
 ENTRYPOINT( History )
 DEFAULT_ARGS(   "-ra:IP address of remote serial port controller:127.0.0.1"
                 "-rp:TCP port for serial controller:32700"
-                "-p:TCP port to listen on:32900" 
+                "-p:TCP port to listen on:33000" 
                 "-f:Database file:history.db"
                 "--:list of charge controller IDs to work on" )
 

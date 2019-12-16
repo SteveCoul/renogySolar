@@ -22,19 +22,25 @@
 			var canvas_width = canvas.scrollWidth;
 			var canvas_height = canvas.scrollHeight;
 
+            canvas.width = canvas_width;
+            canvas.height = canvas_height;
+
 			var left = 0;
 			var top = 0;
 			var width = canvas_width;
 			var height = canvas_height;
 			var gradient;
 
+            // Reset
             ctx.clearRect( 0, 0, canvas_width, canvas_height );
 
+            // Title
 			ctx.font = "" + ( canvas_height / 20 ) + "pt Arial";
 			ctx.textAlign = "center";
 			var size = ctx.measureText( title );	
 			ctx.fillStyle = getComputedStyle( canvas ).color;
 			ctx.fillText( title, canvas_width/2, size.emHeightAscent );
+
 			top += ( size.emHeightAscent + size.emHeightDescent );
 			height -= ( size.emHeightAscent + size.emHeightDescent );
 
@@ -46,7 +52,7 @@
 			ctx.save();
 			ctx.fillStyle = getComputedStyle( canvas ).color;
 			ctx.rotate( -Math.PI / 2 );
-			ctx.fillText( ylabel, -(canvas_height/2), size.emHeightAscent );
+			ctx.fillText( ylabel, -(canvas_height/2), size.emHeightAscent );    // Um? + left?
 			left += ( size.emHeightAscent + size.emHeightDescent );
 			width -= ( size.emHeightAscent + size.emHeightDescent );
 			ctx.restore();
@@ -55,7 +61,6 @@
 
 			var w1 = ctx.measureText( xaxis[0] ).width;
 			xaxis.forEach( function(e) { var v = ctx.measureText( e ).width; if ( v > w1 ) w1 = v; } );
-	
 			w1 = w1 * 1.1;	
 			height -= w1;	
 
@@ -294,25 +299,25 @@
 			process( url, doupdate );
 			if ( controller_id != 0 ) {
 				if ( counter_recent == limit_recent ) {
-					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Recent", doupdaterecent );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Recent", doupdaterecent );
 					counter_recent = 0;
 				} else {
 					counter_recent++;
 				}
 				if ( counter_minutes == limit_minutes ) {
-					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Minutes", doupdateminutes );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Minutes", doupdateminutes );
 					counter_minutes = 0;
 				} else {
 					counter_minutes++;
 				}
 				if ( counter_hours == limit_hours ) {
-					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Hours", doupdatehours );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Hours", doupdatehours );
 					counter_hours = 0;
 				} else {
 					counter_hours++;
 				}
 				if ( counter_days == limit_days ) {
-					process( "http://" + window.location.hostname + ":32900/" + controller_id + "/Days", doupdatedays );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Days", doupdatedays );
 					counter_days = 0;
 				} else {
 					counter_days++;
@@ -382,7 +387,7 @@
 	<TABLE ID="content" CLASS="datatable"><TBODY CLASS="datatable">
 	    <TR>
 			<TD>
-				<TABLE>
+				<TABLE WIDTH="100%">
 					<TR>
 						<TH COLSPAN="3" class="tableaxislabel">Photovoltic Array</TH>
 					</TR>
@@ -408,10 +413,9 @@
 					</TR>
 				</TABLE>
 			</TD>
+			<TD WIDTH="2px"></TD>
 			<TD>
-			</TD>
-			<TD>
-				<TABLE>
+				<TABLE WIDTH="100%">
 					<TR><TH class="tableaxislabel" COLSPAN="2">Battery</TH></TR>
 					<TR>
 						<TD class="tableaxislabel">Voltage</TD>
@@ -431,9 +435,9 @@
 					</TR>
 				</TABLE>
 			</TD>
-			<TD> </TD>
+			<TD WIDTH="2px"></TD>
 			<TD>
-				<TABLE>
+				<TABLE WIDTH="100%">
 					<TR><TH COLSPAN="2" class="tableaxislabel">Power Generation</TH></TR>
 					<TR>
 						<TD class="tableaxislabel">Today</TD>
@@ -449,18 +453,18 @@
 					</TR>
 				</TABLE>
 			</TD>
-			<TD> </TD>
+			<TD WIDTH="2px"></TD>
 			<TD>
 				<BUTTON type="button" ID="graphmodebutton" onclick="toggleGraphMode();">Toggle Graph Mode</BUTTON>
 			</TD>
 		</TR>
 		<TR>
 			<TD ALIGN="center" ID="graphic_recent_parent"><CANVAS CLASS="graph" ID="graphic_recent" onclick='zoom(this.id);'></CANVAS></TD>
-			<TD></TD>
+			<TD WIDTH="2px"></TD>
 			<TD ALIGN="center" ID="graphic_minutes_parent"><CANVAS CLASS="graph" ID="graphic_minutes" onclick='zoom(this.id);'></CANVAS></TD>
-			<TD></TD>
+			<TD WIDTH="2px"></TD>
 			<TD ALIGN="center" ID="graphic_hours_parent"><CANVAS CLASS="graph" ID="graphic_hours" onclick='zoom(this.id);'></CANVAS></TD>
-			<TD></TD>
+			<TD WIDTH="2px"></TD>
 			<TD ALIGN="center" ID="graphic_days_parent"><CANVAS CLASS="graph" ID="graphic_days" onclick='zoom(this.id);'></CANVAS></TD>
 		</TR>
 	</TBODY></TABLE>
