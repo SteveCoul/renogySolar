@@ -18,7 +18,7 @@ rs485-tcp: src/rs485-tcp.cpp src/Common.cpp src/Args.cpp src/SerialPort.cpp
 clean::
 	rm -f rs485-tcp
 
-history: src/history.cpp src/Common.cpp src/ModBus.cpp src/HistoryTable.cpp src/Args.cpp
+history: src/history.cpp src/Common.cpp src/ModBus.cpp src/HistoryTable.cpp src/Args.cpp src/XMLParser.cpp src/XML2JSON.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 -ldl
 
 clean::

@@ -21,6 +21,7 @@
 #include "Common.hpp"
 #include "HistoryTable.hpp"
 #include "ModBus.hpp"
+#include "XML2JSON.hpp"
 #include "renogy.hpp"
 
 class History {
@@ -83,12 +84,12 @@ int main( Args* args ) {
             while ( i!=0 ) {
                 if ( name[i-1] != '.' ) {
                     i--;
-                    name[i] = 0;
                 } else {
                     break;
                 }
             }
             name[i-1] = 0;
+            const char* filetype = name+i;
 
             HistoryTable* tab = HistoryTable::get( name );
             if ( tab == NULL ) {
@@ -96,9 +97,20 @@ int main( Args* args ) {
                 write( client_fd, buffer, strlen(buffer) );
             } else {
                 char* xml = tab->toXML( atoi(clientid) );
-                sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(xml) );
-                write( client_fd, buffer, strlen(buffer) );
-                write( client_fd, xml, strlen(xml) );
+
+                if ( strcmp( filetype, "xml" ) == 0 ) {
+                    sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(xml) );
+                    write( client_fd, buffer, strlen(buffer) );
+                    write( client_fd, xml, strlen(xml) );
+                } else {
+                    XML2JSON json;
+                    std::string j = json.convert( std::string(xml) );
+                    const char* p = j.c_str();
+                    
+                    sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(p) );
+                    write( client_fd, buffer, strlen(buffer) );
+                    write( client_fd, p, strlen(p) );
+                }
                 free( (void*)xml );
             }
 
