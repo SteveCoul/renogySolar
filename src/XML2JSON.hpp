@@ -33,6 +33,8 @@ public:
     void onAttribute( std::string name, std::string value );
     void onText( std::string text );
     std::string onFinish();
+
+    std::string convert( std::string xml );
 };
 
 #endif

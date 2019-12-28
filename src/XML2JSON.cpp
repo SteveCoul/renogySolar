@@ -84,4 +84,8 @@ void XML2JSON::onText( std::string text )   {
     (void) new Item( current, "#text", text );
 }
 
+std::string XML2JSON::convert( std::string xml ) {
+    if ( parse( xml ) ) return result();
+    return "#error";
+}
 
