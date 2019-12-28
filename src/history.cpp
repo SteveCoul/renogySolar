@@ -80,6 +80,15 @@ int main( Args* args ) {
             i = 0;
             while ( ( name[i] != '\0' ) && ( name[i] != '?' ) && ( name[i] != ' ' ) && ( name[i] != '\t' ) )    i++;
             name[i] = 0;
+            while ( i!=0 ) {
+                if ( name[i-1] != '.' ) {
+                    i--;
+                    name[i] = 0;
+                } else {
+                    break;
+                }
+            }
+            name[i-1] = 0;
 
             HistoryTable* tab = HistoryTable::get( name );
             if ( tab == NULL ) {

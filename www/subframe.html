@@ -299,25 +299,25 @@
 			process( url, doupdate );
 			if ( controller_id != 0 ) {
 				if ( counter_recent == limit_recent ) {
-					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Recent", doupdaterecent );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Recent.xml", doupdaterecent );
 					counter_recent = 0;
 				} else {
 					counter_recent++;
 				}
 				if ( counter_minutes == limit_minutes ) {
-					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Minutes", doupdateminutes );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Minutes.xml", doupdateminutes );
 					counter_minutes = 0;
 				} else {
 					counter_minutes++;
 				}
 				if ( counter_hours == limit_hours ) {
-					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Hours", doupdatehours );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Hours.xml", doupdatehours );
 					counter_hours = 0;
 				} else {
 					counter_hours++;
 				}
 				if ( counter_days == limit_days ) {
-					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Days", doupdatedays );
+					process( "http://" + window.location.hostname + ":33000/" + controller_id + "/Days.xml", doupdatedays );
 					counter_days = 0;
 				} else {
 					counter_days++;

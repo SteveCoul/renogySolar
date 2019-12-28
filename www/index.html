@@ -52,7 +52,7 @@
                         } );
 
 		for ( var i = 1; i < (number_of_controllers_to_look_for+1); i++ ) {
-			var name = "http://" + window.location.hostname + ":" + (32700+i) + "/data";
+			var name = "http://" + window.location.hostname + ":" + (32700+i) + "/data.xml";
 			var req = new XMLHttpRequest();
 			req.onerror = function() {
 				controller_bad_addresses++;
