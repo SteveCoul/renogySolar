@@ -1,8 +1,30 @@
 #include <algorithm>
 #include "XML2JSON.hpp"
 
-bool XML2JSON::Item::compare2( Item* one, Item* two ) {
-    return (one->name.compare( two->name ) < 0 );
+void XML2JSON::Item::sort() {
+    std::vector<class Item*>s(children);
+
+    children.clear();
+
+    while ( s.empty() == false ) {
+        Item* i = s.front();
+        s.erase( s.begin() );
+
+        std::vector<Item*>::iterator it = children.begin();
+        while ( it != children.end() ) {
+            if ( (*it)->name.compare( i->name ) == 0 ) break;
+            it++;
+        }
+
+        if ( it != children.end() ) {
+            while ( it != children.end() ) {
+                if ( (*it)->name.compare( i->name ) != 0 ) break;
+                it++;
+            }
+        }
+
+        children.insert( it, i );
+    }
 }
 
 XML2JSON::Item::Item( class Item* parent, std::string name, std::string value ) {
@@ -36,7 +58,7 @@ XML2JSON::~XML2JSON() {
     }
 }
 
-void XML2JSON::walk( XML2JSON::Item* i, bool is_last ) {
+void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
 
     if ( ( i->children.size() == 1 ) && ( i->children.at(0)->name.compare("#text")==0 ) ) {
         json << i->name << ": " << i->children.at(0)->value;
@@ -44,7 +66,13 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last ) {
         json << "\n";
     } else {
 
-        json << i->name << ": {\n";
+        if ( is_array_member ) {
+            json << "{\n";
+        } else {
+           json << i->name << ": {\n";
+        }
+
+        i->sort();
 
         for (std::vector<Item*>::iterator it = i->attributes.begin() ; it != i->attributes.end(); ++it) {
             json << (*it)->name << ": " << (*it)->value;
@@ -53,11 +81,50 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last ) {
             json << "\n";
         }
 
-        sort( i->children.begin(), i->children.end(), Item::compare2 );
+        std::vector<Item*>::iterator it = i->children.begin();
+        bool array = false;
 
-        // TODO - sort children by name, then look for groups of the same name and make those an array
-        for (std::vector<Item*>::iterator it = i->children.begin() ; it != i->children.end(); ++it) {
-            walk(*it, (it+1)==i->children.end() );
+        for (;;) {
+            Item* here = *it;
+            bool ending = false;
+            if ( array == false ) {
+                if ( here == i->children.back() ) {
+                    /* last element, so we can't be */
+                } else {
+                    Item* there = *(it+1);
+                    if ( here->name.compare( there->name ) == 0 ) {
+                        /* two names match, starting an array */
+                        array = true;
+                        json << here->name << ": [\n";
+                    }
+                }
+            } else if ( array ) {
+                if ( here == i->children.back() ) {
+                    /* last child so must be end of array */
+                    ending = true;
+                } else {
+                    Item* there = *(it+1);
+                    if ( here->name.compare( there->name ) != 0 ) {
+                        /* name changes */
+                        ending = true;
+                    }
+                }
+            }
+           
+            if ( array ) {
+                walk(*it, ending, true );
+            } else {
+                walk(*it, (it+1)==i->children.end(), false );
+            }
+
+            if ( ending ) {
+                if ( here != i->children.back() ) json << "],\n";
+                else json << "]\n";
+                array = false;
+            }
+
+            it++;
+            if ( it == i->children.end() ) break;
         }
 
         json << "}";

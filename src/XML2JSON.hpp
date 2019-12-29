@@ -18,7 +18,7 @@ public:
         std::vector<class Item*>attributes;
         std::vector<class Item*>children;
         Item( class Item* parent, std::string name, std::string value = "" );
-        static bool compare2( Item* one, Item* two );
+        void sort();
     };
 
     void dodel( XML2JSON::Item* i );
@@ -28,7 +28,7 @@ public:
     XML2JSON::Item*   current = 0;
     std::stringstream   json;
 
-    void walk( XML2JSON::Item* i, bool is_last = false );
+    void walk( XML2JSON::Item* i, bool is_last = false, bool is_array_member = false );
     void onStartTag( std::string name );
     void onEndTag( std::string name );
     void onAttribute( std::string name, std::string value );
