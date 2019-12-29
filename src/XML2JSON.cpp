@@ -49,6 +49,7 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last ) {
             json << "\n";
         }
 
+        // TODO - sort children by name, then look for groups of the same name and make those an array
         for (std::vector<Item*>::iterator it = i->children.begin() ; it != i->children.end(); ++it) {
             walk(*it, (it+1)==i->children.end() );
         }

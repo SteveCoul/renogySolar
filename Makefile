@@ -1,7 +1,7 @@
 
 COPTS=-g -pedantic -Wall -Werror -std=c++11 -pthread 
 
-all:	rs485-tcp controller_read webserver history
+all:	rs485-tcp controller_read webserver history testjson
 
 webserver: src/webserver.cpp src/Common.cpp src/Args.cpp
 	c++ $(COPTS) -o $@ $^
@@ -20,9 +20,13 @@ clean::
 
 history: src/history.cpp src/Common.cpp src/ModBus.cpp src/HistoryTable.cpp src/Args.cpp src/XMLParser.cpp src/XML2JSON.cpp
 	c++ $(COPTS) -o $@ $^ -lsqlite3 -ldl
-
 clean::
 	rm -f history
+
+testjson: test/testjson.cpp src/Common.cpp src/Args.cpp src/XMLParser.cpp src/XML2JSON.cpp
+	c++ -I./src/ $(COPTS) -o $@ $^
+clean::
+	rm -f testjson
 
 doc: documentation/html/index.html
 
