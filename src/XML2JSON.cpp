@@ -1,5 +1,9 @@
-
+#include <algorithm>
 #include "XML2JSON.hpp"
+
+bool XML2JSON::Item::compare2( Item* one, Item* two ) {
+    return (one->name.compare( two->name ) < 0 );
+}
 
 XML2JSON::Item::Item( class Item* parent, std::string name, std::string value ) {
     if ( name.front() == '#' ) {
@@ -48,6 +52,8 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last ) {
                 json << ",";
             json << "\n";
         }
+
+        sort( i->children.begin(), i->children.end(), Item::compare2 );
 
         // TODO - sort children by name, then look for groups of the same name and make those an array
         for (std::vector<Item*>::iterator it = i->children.begin() ; it != i->children.end(); ++it) {

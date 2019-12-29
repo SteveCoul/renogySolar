@@ -18,6 +18,7 @@ public:
         std::vector<class Item*>attributes;
         std::vector<class Item*>children;
         Item( class Item* parent, std::string name, std::string value = "" );
+        static bool compare2( Item* one, Item* two );
     };
 
     void dodel( XML2JSON::Item* i );
