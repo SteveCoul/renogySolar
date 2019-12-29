@@ -16,6 +16,25 @@
 			reload();
 		}
 
+        CanvasRenderingContext2D.prototype.measureText2 = function( text ) {
+            var size = this.measureText( text );
+
+            if ( size.emHeightAscent == undefined ) {
+                if ( size.actualBoundingBoxAscent != undefined )
+                    size.emHeightAscent = size.actualBoundingBoxAscent;
+                else 
+                    size.emHeightAscent = 0;
+            }
+
+            if ( size.emHeightDescent == undefined ) {
+                if ( size.actualBoundingBoxDescent != undefined )
+                    size.emHeightDescent = size.actualBoundingBoxDescent;
+                else 
+                    size.emHeightDescent = 0;
+            }
+            return size;
+        }
+
 		function makeGraph( title, xlabel, ylabel, canvas, xaxis, yaxis ) {
 
 			var ctx = canvas.getContext("2d");
@@ -37,7 +56,7 @@
             // Title
 			ctx.font = "" + ( canvas_height / 20 ) + "pt Arial";
 			ctx.textAlign = "center";
-			var size = ctx.measureText( title );	
+			var size = ctx.measureText2( title );	
 			ctx.fillStyle = getComputedStyle( canvas ).color;
 			ctx.fillText( title, canvas_width/2, size.emHeightAscent );
 
@@ -45,7 +64,7 @@
 			height -= ( size.emHeightAscent + size.emHeightDescent );
 
 			ctx.fillStyle = getComputedStyle( canvas ).color;
-			size = ctx.measureText( xlabel );
+			size = ctx.measureText2( xlabel );
 			ctx.fillText( xlabel, canvas_width / 2, canvas_height - size.emHeightDescent );
 			height -= ( size.emHeightAscent + size.emHeightDescent );
 
@@ -59,8 +78,8 @@
 
 			//--
 
-			var w1 = ctx.measureText( xaxis[0] ).width;
-			xaxis.forEach( function(e) { var v = ctx.measureText( e ).width; if ( v > w1 ) w1 = v; } );
+			var w1 = ctx.measureText2( xaxis[0] ).width;
+			xaxis.forEach( function(e) { var v = ctx.measureText2( e ).width; if ( v > w1 ) w1 = v; } );
 			w1 = w1 * 1.1;	
 			height -= w1;	
 
@@ -93,8 +112,8 @@
 			var top_label = parseFloat( maxYValue ).toFixed(0);
 			var bottom_label = parseFloat( minYValue ).toFixed(0);
 
-			w1 = ctx.measureText( top_label ).width;
-			var w2 = ctx.measureText( bottom_label ).width;
+			w1 = ctx.measureText2( top_label ).width;
+			var w2 = ctx.measureText2( bottom_label ).width;
 
 			if ( w1 < w2 ) w1 = w2;
 
@@ -133,7 +152,7 @@
 				ctx.closePath();
 
 				ctx.save();
-				size = ctx.measureText( ylabel );
+				size = ctx.measureText2( ylabel );
 
 				var draw = 1;
 				if ( ( size.emHeightAscent + size.emHeightDescent ) > dx ) {
