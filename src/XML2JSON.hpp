@@ -22,10 +22,11 @@ public:
     };
 
     void dodel( XML2JSON::Item* i );
+	XML2JSON();
     ~XML2JSON();
 
-    XML2JSON::Item*   tree = 0;
-    XML2JSON::Item*   current = 0;
+    XML2JSON::Item*   tree;
+    XML2JSON::Item*   current;
     std::stringstream   json;
 
     void walk( XML2JSON::Item* i, bool is_last = false, bool is_array_member = false );

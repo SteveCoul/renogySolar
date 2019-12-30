@@ -1,6 +1,11 @@
 #include <algorithm>
 #include "XML2JSON.hpp"
 
+XML2JSON::XML2JSON() {
+	tree = 0;
+	current = 0;
+}
+
 void XML2JSON::Item::sort() {
     std::vector<class Item*>s(children);
 
