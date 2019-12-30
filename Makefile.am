@@ -32,8 +32,9 @@ bin_PROGRAMS+=history
 history_SOURCES=
 history_SOURCES+=src/history.cpp
 history_SOURCES+=src/HistoryTable.cpp
-history_LDFLAGS=-lsqlite3
-history_LDADD=libRenogySolarCommon.a
+history_LDADD=
+history_LDADD+=libRenogySolarCommon.a
+history_LDADD+=-lsqlite3
 
 bin_PROGRAMS+=webserver
 webserver_CPPFLAGS="-DWWW_DATA=\"$(wwwdir)\""
