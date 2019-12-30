@@ -1,7 +1,13 @@
 
-#rs485-tcp controller_read webserver history testjson
 bin_PROGRAMS=
 noinst_LIBRARIES=
+
+wwwdir=$(datadir)/renogySolar
+www_DATA=
+www_DATA+=www/index.html
+www_DATA+=www/subframe.html
+www_DATA+=www/style.css
+www_DATA+=www/dark_style.css
 
 noinst_LIBRARIES+=libRenogySolarCommon.a
 libRenogySolarCommon_a_SOURCES=
@@ -26,9 +32,11 @@ bin_PROGRAMS+=history
 history_SOURCES=
 history_SOURCES+=src/history.cpp
 history_SOURCES+=src/HistoryTable.cpp
+history_LDFLAGS=-lsqlite3
 history_LDADD=libRenogySolarCommon.a
 
 bin_PROGRAMS+=webserver
+webserver_CPPFLAGS="-DWWW_DATA=\"$(wwwdir)\""
 webserver_SOURCES=src/webserver.cpp
 webserver_LDADD=libRenogySolarCommon.a
 

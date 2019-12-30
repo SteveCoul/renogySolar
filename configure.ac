@@ -7,6 +7,7 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 
 AC_CHECK_LIB(sqlite3,sqlite3_prepare)
+LIBS=
 
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h netinet/in.h stdlib.h string.h sys/ioctl.h sys/time.h syslog.h termios.h unistd.h])
 
