@@ -10,6 +10,7 @@ www_DATA+=www/style.css
 www_DATA+=www/dark_style.css
 
 noinst_LIBRARIES+=libRenogySolarCommon.a
+libRenogySolarCommon_a_CPPFLAGS=-std=c++11
 libRenogySolarCommon_a_SOURCES=
 libRenogySolarCommon_a_SOURCES+=src/Args.cpp
 libRenogySolarCommon_a_SOURCES+=src/Common.cpp
