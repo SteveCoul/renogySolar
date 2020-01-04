@@ -193,6 +193,10 @@ void Common::log( int level, const char* fmt, ... ) {
     }
 }
 
+void Common::log( int level, std::string str ) {
+	log( level, str.c_str() );
+}
+
 int Common::mprintf( char** pp, const char* fmt, ... ) {
     char* n = (char*)malloc(0);
     va_list args;

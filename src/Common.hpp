@@ -1,6 +1,7 @@
 #ifndef __common_hpp__
 #define __common_hpp__
 
+#include <string>
 #include <syslog.h>
 
 #include "Args.hpp"
@@ -10,6 +11,7 @@ public:
     static int shouldQuit( void );
     static unsigned long long NOWms( void );
     static void log( int level, const char* fmt, ... );
+	static void log( int level, std::string str );
     static int mprintf( char** pp, const char* fmt, ... );
     static int tcpAccept( int server );
     static int createTCPServerSocket( unsigned short port );
