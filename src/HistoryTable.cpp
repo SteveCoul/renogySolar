@@ -16,6 +16,9 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include <iomanip>
+#include <sstream>
+
 #include <sqlite3.h>
 
 #include "Common.hpp"
@@ -102,7 +105,7 @@ void HistoryTable::cascade( time_t time_mod, class HistoryTable* to ) {
 }
 
 std::string HistoryTable::toXML( int id ) {
-    char* result = NULL;
+    std::stringstream result;
 
     char start_time[64];
     mktimestamp( start_time, time(NULL) - m_window );
@@ -110,10 +113,10 @@ std::string HistoryTable::toXML( int id ) {
     char end_time[64];
     mktimestamp( end_time, time(NULL) );
 
-    Common::mprintf( &result, "<xml>\n" );
+    result << "<xml>\n";
     forEachInTimeRange( id, start_time, end_time, &HistoryTable::toXMLcallback, &result );
-    Common::mprintf( &result, "</xml>\n" );
-    return std::string( result );
+    result << "</xml>\n";
+    return result.str();
 }
 
 void HistoryTable::doAveraging( void* param, const char* t, float voltage, float current ) {
@@ -124,10 +127,11 @@ void HistoryTable::doAveraging( void* param, const char* t, float voltage, float
 }
 
 void HistoryTable::toXMLcallback( void* param, const char* t, float voltage, float current ) {
-    Common::mprintf( (char**)param, "<entry time='%s'>\n", t );
-    Common::mprintf( (char**)param, "<voltage>%f</voltage>\n", voltage );
-    Common::mprintf( (char**)param, "<current>%f</current>\n", current );
-    Common::mprintf( (char**)param, "</entry>\n");
+    std::stringstream* presult = static_cast<std::stringstream*>(param);
+    (*presult) << "<entry time='" << t << "'>\n";
+    (*presult) << "<voltage>" << voltage << "</voltage>\n";
+    (*presult) << "<current>" << current << "</current>\n";
+    (*presult) << "</entry>\n";
 }
 
 void HistoryTable::forEachInTimeRange( int id, const char* start_time, const char* end_time, callback_fn callback, void* param ) {
