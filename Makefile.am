@@ -1,4 +1,6 @@
 
+AM_CXXFLAGS=-std=c++11 -Wall -Wpedantic
+
 bin_PROGRAMS=
 noinst_PROGRAMS=
 noinst_LIBRARIES=
@@ -11,7 +13,7 @@ www_DATA+=www/style.css
 www_DATA+=www/dark_style.css
 
 noinst_LIBRARIES+=libRenogySolarCommon.a
-libRenogySolarCommon_a_CPPFLAGS=-std=c++11 -I$(srcdir)/src
+libRenogySolarCommon_a_CPPFLAGS=-I$(srcdir)/src
 libRenogySolarCommon_a_SOURCES=
 libRenogySolarCommon_a_SOURCES+=src/Args.cpp
 libRenogySolarCommon_a_SOURCES+=src/Common.cpp
