@@ -1,0 +1,9 @@
+
+#include <HTTPREST.hpp>
+
+HTTPREST::HTTPREST() {
+}
+
+HTTPREST::~HTTPREST() {
+}
+
