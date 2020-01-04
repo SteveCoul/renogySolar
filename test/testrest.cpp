@@ -6,6 +6,10 @@ class Test {
 public:
 static
 int main( Args* args ) {
+    HTTPREST r;
+        
+    r.run();
+
     return 0;
 }
 
