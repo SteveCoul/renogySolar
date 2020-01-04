@@ -11,6 +11,9 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include <iomanip>
+#include <sstream>
+
 #include "Common.hpp"
 #include "ModBus.hpp"
 
@@ -48,8 +51,13 @@ int ModBus::transact( unsigned char* buffer, int send_len, int rx_len ) {
     int fd = Common::connectTCP( m_ip, m_port );
     int rc = -1;
     if ( fd >= 0 ) {
-        char* dbg = NULL;
-        Common::mprintf(&dbg,"modbus> "); for ( int i = 0; i < send_len; i++ ) Common::mprintf(&dbg, "%02X ", buffer[i] ); log( LOG_DEBUG, dbg ); free((void*)dbg); dbg=NULL;
+		std::stringstream   dbg;
+		dbg << "modbus> ";
+        for ( int i = 0; i < send_len; i++ ) 
+			dbg << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]) << " ";
+        log( LOG_DEBUG, dbg.str() );
+		dbg.str("");
+
         if ( writeComplete( fd, buffer, send_len ) >= 0 ) {
             if ( readComplete( fd, buffer, 3 ) >= 0 ) {
                 if ( buffer[1] & 0x80 ) {
@@ -57,7 +65,14 @@ int ModBus::transact( unsigned char* buffer, int send_len, int rx_len ) {
                     assert(0);  // FIXME read exception
                 } else {
                     if ( readComplete( fd, buffer+3, rx_len-3 ) >= 0 ) {
-                        Common::mprintf(&dbg,"modbus< "); for ( int i = 0; i < rx_len; i++ ) Common::mprintf(&dbg, "%02X ", buffer[i] ); log( LOG_DEBUG, dbg ); free((void*)dbg);
+
+
+						dbg << "modbus< ";
+						for ( int i = 0; i < rx_len; i++ ) 
+							dbg << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]) << " ";
+						log( LOG_DEBUG, dbg.str() );
+						dbg.str("");
+
                         rc = rx_len;
                     }
                 }
