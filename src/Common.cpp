@@ -183,40 +183,19 @@ void Common::log( int level, const char* fmt, ... ) {
     }
 
     if ( output ) {
-        char* new_fmt = NULL;
-        mprintf( &new_fmt, "[%s] %s", output_prefix, fmt );
+        std::string new_fmt = std::string("[");
+        new_fmt += output_prefix;
+        new_fmt += "] ";
+        new_fmt += fmt;
         va_list args;
         va_start( args, fmt );
-        vsyslog( level, new_fmt, args );
+        vsyslog( level, new_fmt.c_str(), args );
         va_end( args );
-        (void)free( (void*)new_fmt );
     }
 }
 
 void Common::log( int level, std::string str ) {
 	log( level, str.c_str() );
-}
-
-int Common::mprintf( char** pp, const char* fmt, ... ) {
-    char* n = (char*)malloc(0);
-    va_list args;
-
-    va_start( args, fmt );
-    int nl = vsnprintf( n, 0, fmt, args );
-    va_end( args );
-
-    free( (void*)n );
-
-    int ol = 0;
-    if ( pp[0] != NULL ) ol = strlen( pp[0] );
-
-    // FIX potential memory leak and warn to syslog on error please.
-
-    pp[0] = (char*)realloc( pp[0], ol + nl + 1024 );
-    va_start( args, fmt );
-    int rc = vsprintf( pp[0] + ol, fmt, args );
-    va_end( args );
-    return rc;
 }
 
 int Common::tcpAccept( int server ) {

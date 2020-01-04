@@ -12,7 +12,6 @@ public:
     static unsigned long long NOWms( void );
     static void log( int level, const char* fmt, ... );
 	static void log( int level, std::string str );
-    static int mprintf( char** pp, const char* fmt, ... );
     static int tcpAccept( int server );
     static int createTCPServerSocket( unsigned short port );
     static void waitForTCPHangup( int fd );
