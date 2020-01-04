@@ -1,6 +1,8 @@
 #include <algorithm>
 #include "XML2JSON.hpp"
 
+#define ENDL ""
+
 XML2JSON::XML2JSON() {
 	tree = 0;
 	current = 0;
@@ -68,13 +70,13 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
     if ( ( i->children.size() == 1 ) && ( i->children.at(0)->name.compare("#text")==0 ) ) {
         json << i->name << ": " << i->children.at(0)->value;
         if ( !is_last ) json << ",";
-        json << "\n";
+        json << ENDL;
     } else {
 
         if ( is_array_member ) {
-            json << "{\n";
+            json << "{" << ENDL;
         } else {
-           json << i->name << ": {\n";
+           json << i->name << ": {" << ENDL;
         }
 
         i->sort();
@@ -83,7 +85,7 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
             json << (*it)->name << ": " << (*it)->value;
             if ( ( i->children.size() > 0 ) || ((it+1) != i->attributes.end() ) )
                 json << ",";
-            json << "\n";
+            json << ENDL;
         }
 
         std::vector<Item*>::iterator it = i->children.begin();
@@ -100,7 +102,7 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
                     if ( here->name.compare( there->name ) == 0 ) {
                         /* two names match, starting an array */
                         array = true;
-                        json << here->name << ": [\n";
+                        json << here->name << ": [" << ENDL;
                     }
                 }
             } else if ( array ) {
@@ -123,8 +125,8 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
             }
 
             if ( ending ) {
-                if ( here != i->children.back() ) json << "],\n";
-                else json << "]\n";
+                if ( here != i->children.back() ) json << "]," << ENDL;
+                else json << "]" << ENDL;
                 array = false;
             }
 
@@ -134,14 +136,14 @@ void XML2JSON::walk( XML2JSON::Item* i, bool is_last, bool is_array_member ) {
 
         json << "}";
         if ( !is_last ) json << ",";
-        json << "\n";
+        json << ENDL;
     }
 }
 
 std::string XML2JSON::onFinish() { 
-    json << "{\n";
+    json << "{" << ENDL;
     walk( tree, true );
-    json << "}\n";
+    json << "}" << ENDL;
     return json.str();
 }
 
