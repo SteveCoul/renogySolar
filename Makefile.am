@@ -1,5 +1,6 @@
 
 bin_PROGRAMS=
+noinst_PROGRAMS=
 noinst_LIBRARIES=
 
 wwwdir=$(datadir)/renogySolar
@@ -42,3 +43,7 @@ webserver_CPPFLAGS="-DWWW_DATA=\"$(wwwdir)\""
 webserver_SOURCES=src/webserver.cpp
 webserver_LDADD=libRenogySolarCommon.a
 
+noinst_PROGRAMS+=testjson
+testjson_CPPFLAGS=-I$(srcdir)/src
+testjson_SOURCES=test/testjson.cpp
+testjson_LDADD=libRenogySolarCommon.a
