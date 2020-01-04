@@ -7,6 +7,9 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include <iomanip>
+#include <sstream>
+
 #include "Common.hpp"
 #include "SerialPort.hpp"
 
@@ -139,11 +142,10 @@ int SerialPort::transact( int fd, int time_out ) {
                     break;
                 }
 
-                char* dbg = NULL;
-                Common::mprintf(&dbg, "%s < ", m_device );
-                for ( int i = 0; i < len; i++ ) Common::mprintf(&dbg," %02X", buffer[i] );
-                log( LOG_DEBUG, dbg );
-                free( (void*)dbg );
+    			std::stringstream   dbg;
+				dbg << m_device << " < ";
+                for ( int i = 0; i < len; i++ ) dbg << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]) << " ";
+                log( LOG_DEBUG, dbg.str() );
     
                 if ( write( m_fd, buffer, len ) != len ) {
                     log( LOG_WARNING, "serialport write failed [%s]", strerror(errno) );
@@ -171,11 +173,10 @@ int SerialPort::transact( int fd, int time_out ) {
                     break;
                 }
     
-                char* dbg = NULL;
-                Common::mprintf(&dbg, "%s > ", m_device );
-                for ( int i = 0; i < len; i++ ) Common::mprintf(&dbg," %02X", buffer[i] );
-                log( LOG_DEBUG, dbg );
-                free( (void*)dbg );
+    			std::stringstream   dbg;
+				dbg << m_device << " > ";
+                for ( int i = 0; i < len; i++ ) dbg << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]) << " ";
+                log( LOG_DEBUG, dbg.str() );
 
                 if ( write( fd, buffer, len ) != len ) {
                     log( LOG_WARNING, "serialport transaction client write problem [%s]", strerror(errno) );
