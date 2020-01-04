@@ -3,7 +3,7 @@
 
 class HTTPREST {
 public:
-	HTTPREST();
+	HTTPREST( int port = 8080 );
 	~HTTPREST();
 };
 

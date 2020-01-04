@@ -1,7 +1,7 @@
 
 #include <HTTPREST.hpp>
 
-HTTPREST::HTTPREST() {
+HTTPREST::HTTPREST( int port ) {
 }
 
 HTTPREST::~HTTPREST() {

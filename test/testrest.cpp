@@ -12,5 +12,5 @@ int main( Args* args ) {
 };
 
 ENTRYPOINT(Test)
-DEFAULT_ARGS( "" )
+DEFAULT_ARGS( "-p:TCP port to listen on:8080" )
 
