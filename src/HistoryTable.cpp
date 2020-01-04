@@ -101,7 +101,7 @@ void HistoryTable::cascade( time_t time_mod, class HistoryTable* to ) {
     m_cascade_target = to;
 }
 
-char* HistoryTable::toXML( int id ) {
+std::string HistoryTable::toXML( int id ) {
     char* result = NULL;
 
     char start_time[64];
@@ -113,7 +113,7 @@ char* HistoryTable::toXML( int id ) {
     Common::mprintf( &result, "<xml>\n" );
     forEachInTimeRange( id, start_time, end_time, &HistoryTable::toXMLcallback, &result );
     Common::mprintf( &result, "</xml>\n" );
-    return result;
+    return std::string( result );
 }
 
 void HistoryTable::doAveraging( void* param, const char* t, float voltage, float current ) {

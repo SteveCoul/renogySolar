@@ -96,22 +96,23 @@ int main( Args* args ) {
                 sprintf( buffer, "HTTP/1.0 404 Not Found\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: 0\r\n\r\n" );
                 write( client_fd, buffer, strlen(buffer) );
             } else {
-                char* xml = tab->toXML( atoi(clientid) );
+                std::string xml = tab->toXML( atoi(clientid) );
 
                 if ( strcmp( filetype, "xml" ) == 0 ) {
-                    sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(xml) );
+                    const char* p = xml.c_str();
+
+                    sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(p) );
                     write( client_fd, buffer, strlen(buffer) );
-                    write( client_fd, xml, strlen(xml) );
+                    write( client_fd, p, strlen(p) );
                 } else {
                     XML2JSON json;
-                    std::string j = json.convert( std::string(xml) );
+                    std::string j = json.convert( xml );
                     const char* p = j.c_str();
                     
                     sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int)strlen(p) );
                     write( client_fd, buffer, strlen(buffer) );
                     write( client_fd, p, strlen(p) );
                 }
-                free( (void*)xml );
             }
 
             free( (void*)line );

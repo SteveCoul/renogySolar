@@ -2,6 +2,8 @@
 #ifndef __HistoryHistoryTable_hpp__
 #define __HistoryHistoryTable_hpp__
 
+#include <string>
+
 ///
 /// \class HistoryTable
 ///
@@ -24,7 +26,7 @@ public:
     void setWindow( time_t t );
     void setExpiry( time_t t );
     void cascade( time_t time_mod, class HistoryTable* to );
-    char* toXML( int id );
+    std::string toXML( int id );
 private:
     void doAveraging( void* param, const char* t, float voltage, float current );
     void toXMLcallback( void* param, const char* t, float voltage, float current );
