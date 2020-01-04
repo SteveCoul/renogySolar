@@ -18,6 +18,7 @@ public:
     static int connectTCP( const char* ip, unsigned short port );
     static char* mReadLine( int fd );
     static int timedRead( int fd, void* buffer, size_t length, int timeout_ms );
+    static int readLine( int fd, std::string& result );
 };
 
 typedef int (*bootstrap)( Args* args );

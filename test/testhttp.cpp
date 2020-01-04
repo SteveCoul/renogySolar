@@ -1,14 +1,16 @@
 
 #include <Common.hpp>
-#include <HTTPREST.hpp>
+#include <HTTPServer.hpp>
 
 class Test {
 public:
 static
 int main( Args* args ) {
-    HTTPREST r;
-        
-    r.run();
+    HTTPServer r;
+
+    while (Common::shouldQuit() == 0 ) {        
+        r.process();
+    }
 
     return 0;
 }

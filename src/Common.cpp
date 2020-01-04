@@ -403,3 +403,9 @@ reboot:
     return rc;
 }
 
+int Common::readLine( int fd, std::string& result ) {
+    result = "";
+    log( LOG_CRIT, "%s not implemented", __PRETTY_FUNCTION__ );
+    return -1;
+}
+

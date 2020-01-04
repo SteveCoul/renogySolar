@@ -17,7 +17,7 @@ libRenogySolarCommon_a_CPPFLAGS=-I$(srcdir)/src
 libRenogySolarCommon_a_SOURCES=
 libRenogySolarCommon_a_SOURCES+=src/Args.cpp
 libRenogySolarCommon_a_SOURCES+=src/Common.cpp
-libRenogySolarCommon_a_SOURCES+=src/HTTPREST.cpp
+libRenogySolarCommon_a_SOURCES+=src/HTTPServer.cpp
 libRenogySolarCommon_a_SOURCES+=src/ModBus.cpp
 libRenogySolarCommon_a_SOURCES+=src/XML2JSON.cpp
 libRenogySolarCommon_a_SOURCES+=src/XMLParser.cpp
@@ -51,8 +51,8 @@ testjson_CPPFLAGS=-I$(srcdir)/src
 testjson_SOURCES=test/testjson.cpp
 testjson_LDADD=libRenogySolarCommon.a
 
-noinst_PROGRAMS+=testrest
-testrest_CPPFLAGS=-I$(srcdir)/src
-testrest_SOURCES=test/testrest.cpp
-testrest_LDADD=libRenogySolarCommon.a
+noinst_PROGRAMS+=testhttp
+testhttp_CPPFLAGS=-I$(srcdir)/src
+testhttp_SOURCES=test/testhttp.cpp
+testhttp_LDADD=libRenogySolarCommon.a
 
