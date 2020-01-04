@@ -15,6 +15,10 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
 #include "Args.hpp"
 #include "Common.hpp"
 #include "ModBus.hpp"
@@ -98,77 +102,96 @@ public:
                     }
     
                     unsigned int tmp;
-                    char* body = NULL;
-                    char* head = NULL;
-    
-                    Common::mprintf( &body, "<controller id=\"%d\">\n", id );
-    
-                    Common::mprintf( &body, "\t<pv_array_rating>\n");
+                    float tmpf;
+                    std::stringstream body;
+   
+                    body << "<controller id=\"" << id << "\">\n"; 
+   
+                    body << "\t<pv_array_rating>\n"; 
+
                     (void)modbus.readVariable( RENOGY_RATED_INPUT_VOLTAGE, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat() );
+                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
                 
                     (void)modbus.readVariable( RENOGY_RATED_INPUT_CURRENT, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat() );
+                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
                     
                     (void)modbus.readVariable( RENOGY_RATED_INPUT_POWER, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
-                    Common::mprintf( &body, "\t</pv_array_rating>\n");
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<power>" << tmpf << "</power>\n";
+
+                    body << "\t</pv_array_rating>\n"; 
                     
-                    Common::mprintf( &body, "\t<pv_array_now>\n");
+                    body << "\t<pv_array_now>\n"; 
+
                     (void)modbus.readVariable( RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat() );
+                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
                     
                     (void)modbus.readVariable( RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat() );
+                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
     
                     (void)modbus.readVariable( RENOGY_PV_INPUT_POWER, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<power>%f</power>\n", ((float)tmp)/100.0f );
-                    Common::mprintf( &body, "\t</pv_array_now>\n");
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<power>" << tmpf << "</power>\n";
                     
-                    Common::mprintf( &body, "\t<battery>\n");
+                    body << "\t</pv_array_now>\n"; 
+
+                    body << "\t<battery>\n"; 
+
                     (void)modbus.readVariable( RENOGY_BATTERY_VOLTAGE, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<voltage>%f</voltage>\n", value[0].asFloat() );
+                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
     
                     (void)modbus.readVariable( RENOGY_BATTERY_CHARGING_CURRENT, 100, 1, value ); 
-                    Common::mprintf( &body, "\t\t<current>%f</current>\n", value[0].asFloat() );
+                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
     
                     (void)modbus.readVariable( RENOGY_BATTERY_STATE_OF_CHARGE, 1, 1, value ); 
-                    Common::mprintf( &body, "\t\t<state_of_charge>%f</state_of_charge>\n", value[0].asFloat() );
+                    body << "\t\t<state_of_charge>" << value[0].asFloat() << "</state_of_charge>\n";
     
                     (void)modbus.readVariable( RENOGY_NET_BATTERY_CURRENT_L, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<net_current>%f</net_current>\n", ((float)tmp)/100.0f );
-                    Common::mprintf( &body, "\t</battery>\n");
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<net_current>" << tmpf << "</net_current>\n";
+                    
+                    body << "\t</battery>\n"; 
     
-                    Common::mprintf( &body, "\t<generation>\n");
+                    body << "\t<generation>\n"; 
+
                     (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_TODAY_L, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<today>%f</today>\n", ((float)tmp)/100.0f );
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<today>" << tmpf << "</today>\n";
     
                     (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_MONTH_L, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<this_month>%f</this_month>\n", ((float)tmp)/100.0f );
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<this_month>" << tmpf << "</this_month>\n";
     
                     (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_YEAR_L, 100, 2, value ); 
                     tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    Common::mprintf( &body, "\t\t<this_year>%f</this_year>\n", ((float)tmp)/100.0f );
-                    Common::mprintf( &body, "\t</generation>\n");
-    
-                    Common::mprintf( &body, "</controller>\n");
-    
-                    Common::mprintf( &head, "HTTP/1.0 200 OK\r\n");
-                    Common::mprintf( &head, "Access-Control-Allow-Origin: *\r\n");
-                    Common::mprintf( &head, "Content-Length: %d\r\n", strlen( body ) );
-                    Common::mprintf( &head, "\r\n");
-    
-                    write( client_fd, head, strlen(head) );
-                    write( client_fd, body, strlen(body) );
+                    tmpf = ((float)tmp)/100.0f;
+                    body << "\t\t<this_year>" << tmpf << "</this_year>\n";
 
-                    free( (void*)body );
-                    free( (void*)head );
-    
+                    body << "\t</generation>\n"; 
+                    
+                    body << "</controller>\n"; 
+ 
+                    std::string s_body = body.str();
+ 
+                    const char* c_body = s_body.c_str();
+
+                    std::stringstream head;
+                    head << "HTTP/1.0 200 OK\r\n";
+                    head << "Access-Control-Allow-Origin: *\r\n";
+                    head << "Content-Length: " << strlen(c_body) << "\r\n";
+                    head << "\r\n";
+
+                    std::string s_head = head.str();
+                    const char* c_head = s_head.c_str();
+
+                    write( client_fd, c_head, strlen(c_head) );
+                    write( client_fd, c_body, strlen(c_body) );
+
                     Common::waitForTCPHangup( client_fd );
                     close( client_fd );
                 }
