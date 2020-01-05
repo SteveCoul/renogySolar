@@ -92,6 +92,7 @@ void HTTPServer::process( int timeout ) {
     out << "HTTP/1.0 " << http_code << " " << http_response << "\r\n";
     out << "Access-Control-Allow-Origin: *\r\n";
     out << "Content-Length: " << body.size() << "\r\n";
+    out << "Connection: close\r\n";
     if ( !content_type.empty() ) out << "Content-Type: " << content_type << "\r\n";
     out << "\r\n";
     if ( body.size() > 0 ) out << body;
@@ -102,6 +103,7 @@ void HTTPServer::process( int timeout ) {
 
     log( LOG_INFO, "%s", p );
     (void)write( client, p, len );
+    Common::waitForTCPHangup( client );
     (void)close( client );
 }
 
