@@ -1,5 +1,5 @@
 
-AM_CXXFLAGS=-std=c++11 -Wall -Wpedantic
+AM_CXXFLAGS=-std=c++11 -Wall -Wpedantic -I$(srcdir)/src
 
 bin_PROGRAMS=
 noinst_PROGRAMS=
