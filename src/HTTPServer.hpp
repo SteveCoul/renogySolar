@@ -6,7 +6,7 @@
 class HTTPServerImplementation {
 public:
     virtual ~HTTPServerImplementation() { }
-    virtual int HTTPServerRequest( std::string path, std::string query, std::string& content_type, std::string& body ) = 0;
+    virtual int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) = 0;
 };
 
 class HTTPServer {

@@ -13,6 +13,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include <algorithm>
+#include <cctype>
+
 #include "Args.hpp"
 #include "Common.hpp"
 
@@ -405,7 +408,49 @@ reboot:
 
 int Common::readLine( int fd, std::string& result ) {
     result = "";
-    log( LOG_CRIT, "%s not implemented", __PRETTY_FUNCTION__ );
-    return -1;
+    for (;;) {
+        char c;
+        int ret = read( fd, &c, 1 );
+        if ( ret == 0 ) 
+            break;
+        else if ( ret < 0 ) {
+            log( LOG_WARNING, "error in read() [%s]", strerror(errno) );
+            return -1;
+        }
+
+        if ( c == '\r' ) {
+            /* ignore */
+        } else if ( c == '\n' ) {
+            break;
+        } else {
+            result += c;
+        }
+    }
+    return result.length();
+}
+
+std::vector<std::string> Common::tokenizeString( std::string source, std::string dividers ) {
+    std::vector<std::string> tokens;
+    for (;;) {
+        size_t where;
+        while ( ( where = source.find_first_of( dividers ) ) == 0 ) 
+            source.erase(0,1);
+        if ( source.empty() ) break;
+        if ( where == std::string::npos ) {
+            tokens.push_back( source );
+            break;
+        }
+        tokens.push_back( source.substr( 0, where ) );
+        source.erase( 0, where );
+    }
+    return tokens;
+}
+
+std::string Common::toUpper( std::string source ) {
+    std::string ret;
+    std::for_each( source.begin(), source.end(), [&]( char const &c ) {
+        ret+=std::toupper( c );
+    } );
+    return ret;
 }
 
