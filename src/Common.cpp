@@ -1,5 +1,6 @@
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -452,5 +453,19 @@ std::string Common::toUpper( std::string source ) {
         ret+=std::toupper( c );
     } );
     return ret;
+}
+
+std::string Common::loadTextFile( std::string path ) {
+    std::string r;
+    int fd = open( path.c_str(), O_RDONLY );
+    if ( fd >= 0 ) {
+        char buffer[1024];
+        size_t len;
+        while ( (len=read(fd,buffer,sizeof(buffer))) > 0 ) {
+            r.append( buffer, len );
+        }
+        close( fd );
+    }
+    return r;
 }
 
