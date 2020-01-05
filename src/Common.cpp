@@ -256,7 +256,7 @@ int Common::createTCPServerSocket( unsigned short port ) {
             sai.sin_port = htons( port );
             sai.sin_addr.s_addr = htonl( INADDR_ANY );
             if ( bind( server_fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
-                log( LOG_ERR, "Failed to bind server socket [%s]", strerror(errno) );
+                log( LOG_ERR, "Failed to bind server socket port %d [%s]", port, strerror(errno) );
                 close( server_fd );
                 server_fd = -1;
             } else if ( listen( server_fd, 1 ) < 0 ) {
@@ -308,7 +308,7 @@ int Common::connectTCP( const char* ip, unsigned short port ) {
         sai.sin_port = htons( port );
         sai.sin_addr.s_addr = inet_addr(ip);
         if ( connect( fd, (const sockaddr*)&sai, sizeof(sai) ) < 0 ) {
-            log( LOG_ERR, "socket failed to connect [%s]", strerror(errno) );
+            log( LOG_ERR, "socket failed to connect %s:%d [%s]", ip, port, strerror(errno) );
             close( fd );
             fd = -1;
         }

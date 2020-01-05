@@ -129,7 +129,7 @@ int main( Args* args ) {
             ModBus::Value   value[3];
             int id = args->getListItemAsInt( i );
 
-            log( LOG_INFO, "------- read device %d -------", id );
+            log( LOG_INFO, "------- read device %d at %s:%d-------", id, raddr, rport );
 
             ModBus modbus( raddr, rport, id );
 
