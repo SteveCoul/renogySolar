@@ -17,63 +17,36 @@
 #include <sys/poll.h>
 
 #include "Common.hpp"
+#include <HTTPServer.hpp>
 
-class WebServer {
+class WebServer : public HTTPServerImplementation {
 public:
-static
-int main( Args* args ) {
 
-    int m_server_fd;
-    int myport = args->getOptionAsInt( "p" );
-
-    m_server_fd = Common::createTCPServerSocket( myport );
-    if ( m_server_fd > 0 ) {
-        while( Common::shouldQuit() == 0 ) {
-            int client_fd = Common::tcpAccept( m_server_fd );
-            if ( client_fd > 0 ) {
-                char* line = Common::mReadLine( client_fd );
-
-                int i = 0;
-
-                while( ( line[i] != ' ' ) && ( line[i] != '\t' ) ) i++;
-                while( ( line[i] == ' ' ) || ( line[i] == '\t' ) ) i++;
-                while( line[i] == '/' ) i++;
-    
-                char *name = line+i;
-                
-                while( ( line[i] != ' ' ) && ( line[i] != '\t' ) && ( line[i] != '?' ) ) i++;
-                line[i] = 0;
-
-                char buffer[65536];
-
-                sprintf( buffer, "www/%s", name[0] == '\0' ? "index.html" : name );
-
-                int fd = open( buffer, O_RDONLY );
-                if ( fd < 0 ) {
-                    sprintf( buffer, "HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\n\r\n" );
-                    write( client_fd, buffer, strlen(buffer) );
-                } else {
-                    sprintf( buffer, "HTTP/1.0 200 Okay\r\nAccess-Control-Allow-Origin: *\r\nContent-Length: %d\r\n\r\n", (int) lseek( fd, 0, SEEK_END ) );
-                    lseek( fd, 0, SEEK_SET);
-                    write( client_fd, buffer, strlen(buffer) );
-                    for (;;) {
-                        int d = read( fd, buffer, sizeof(buffer) );
-                        if ( d == 0 ) break;
-                        write( client_fd, buffer, d );
-                        if ( d != sizeof(buffer) ) break;
-                    }
-                    close( fd );
-
-                    Common::waitForTCPHangup( client_fd );
-
-                    close( client_fd );
-                }   
-                free((void*)line);
-            }
+    int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) {
+        if ( path.compare("/")==0 ) path = "/index.html";
+        body = Common::loadTextFile( "www" + path );
+        if ( body.size() > 0 ) {
+            response = "OK";
+            return 200;
         }
+        response = "Not Found";
+        return 404;
     }
-    return 0;
-}
+
+    static
+    int main( Args* args ) {
+
+        int myport = args->getOptionAsInt( "p" );
+        HTTPServer server( myport );
+        WebServer w;
+        
+        server.setHandler( &w );
+        while (Common::shouldQuit() == 0 ) {        
+            server.process();
+        }
+
+        return 0;
+    }
 };
 
 ENTRYPOINT( WebServer )
