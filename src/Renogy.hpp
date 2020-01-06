@@ -30,7 +30,7 @@ static const int RTC_MINUTE_SECOND            = ModBus::VT_INPUT_REGISTER | 0x90
 static const int RTC_HOUR_DAY                 = ModBus::VT_INPUT_REGISTER | 0x9014;
 static const int RTC_MONTH_YEAR               = ModBus::VT_INPUT_REGISTER | 0x9015;
 
-};
+}
 
 #endif
 
