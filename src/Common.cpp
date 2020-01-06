@@ -1,6 +1,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -370,6 +371,7 @@ reboot:
         rc = -1;
     } else if ( pid == (pid_t) 0 ) {
         signal( SIGINT, quit_handler );
+        signal( SIGPIPE, SIG_IGN );
         openlog( NULL, LOG_PERROR, LOG_USER );
         configureLogging();
         log( LOG_NOTICE, "Started" );
