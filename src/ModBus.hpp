@@ -42,6 +42,7 @@ private:
     static unsigned int calc_crc( unsigned char* buffer, int len );
     static int writeComplete( int fd, unsigned char* buffer, int len );
     static int readComplete( int fd, unsigned char* buffer, int len );
+    static int timedRead( int fd, void* buffer, size_t length, int timeout_ms );
 private:
     const char*     m_ip;
     unsigned short  m_port;

@@ -36,56 +36,6 @@ unsigned long long Common::NOWms( void ) {
     return rc;
 }
 
-int Common::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
-    unsigned char* ptr = (unsigned char*)buffer;
-    struct pollfd pfd;
-    unsigned long long start_time = NOWms();
-    int rc = 0;
-
-    log( LOG_DEBUG, "Timed Read %d", length );
-
-    for (;;) {
-
-        if ( rc == (int)length ) {
-            break;
-        }
-
-        memset( &pfd, 0, sizeof(pfd) );
-        pfd.fd = fd;
-        pfd.events = POLLIN;
-
-        int to;
-        if ( timeout_ms < 0 ) {
-            to = -1;
-        } else {
-            to = NOWms() - start_time;
-            if ( to > timeout_ms ) {
-                errno = ETIMEDOUT;
-                rc = -1;
-                break;
-            }
-        }
-
-        (void)poll( &pfd, 1, to );
-
-        if ( pfd.revents & POLLIN ) {
-            int to_read = length - rc;
-            int ret = read( fd, ptr, to_read );
-            if ( ret < 0 ) {
-                rc = -1;
-                break;
-            }
-            log( LOG_DEBUG, "Timed Read got %d wanted %d", ret, to_read );
-
-            rc+=ret;
-            ptr+=ret; 
-        }
-    }
-
-    log( LOG_DEBUG, "Timed Read took %llu ms", NOWms() - start_time );
-    return rc;
-}
-
 int Common::tcpAccept( int server ) {
     int rc = -1;
     struct sockaddr_in sai;

@@ -18,6 +18,56 @@
 #include "Log.hpp"
 #include "ModBus.hpp"
 
+int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
+    unsigned char* ptr = (unsigned char*)buffer;
+    struct pollfd pfd;
+    unsigned long long start_time = Common::NOWms();
+    int rc = 0;
+
+    log( LOG_DEBUG, "Timed Read %d", length );
+
+    for (;;) {
+
+        if ( rc == (int)length ) {
+            break;
+        }
+
+        memset( &pfd, 0, sizeof(pfd) );
+        pfd.fd = fd;
+        pfd.events = POLLIN;
+
+        int to;
+        if ( timeout_ms < 0 ) {
+            to = -1;
+        } else {
+            to = Common::NOWms() - start_time;
+            if ( to > timeout_ms ) {
+                errno = ETIMEDOUT;
+                rc = -1;
+                break;
+            }
+        }
+
+        (void)poll( &pfd, 1, to );
+
+        if ( pfd.revents & POLLIN ) {
+            int to_read = length - rc;
+            int ret = read( fd, ptr, to_read );
+            if ( ret < 0 ) {
+                rc = -1;
+                break;
+            }
+            log( LOG_DEBUG, "Timed Read got %d wanted %d", ret, to_read );
+
+            rc+=ret;
+            ptr+=ret; 
+        }
+    }
+
+    log( LOG_DEBUG, "Timed Read took %llu ms", Common::NOWms() - start_time );
+    return rc;
+}
+
 unsigned int ModBus::calc_crc( unsigned char* buffer, int len ) {
     unsigned int rc = 0xFFFF;
 
@@ -41,7 +91,7 @@ int ModBus::writeComplete( int fd, unsigned char* buffer, int len ) {
 }
 
 int ModBus::readComplete( int fd, unsigned char* buffer, int len ) {
-    int rc = Common::timedRead( fd, (void*)buffer, (size_t)len, 350 );  /* todo, make timeout configurable */
+    int rc = timedRead( fd, (void*)buffer, (size_t)len, 350 );  /* todo, make timeout configurable */
     if ( rc < 0 ) {
         log( LOG_WARNING, "modbus transaction reply didn't return [%s]", strerror(errno) );
     }
