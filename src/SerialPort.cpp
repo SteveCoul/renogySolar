@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 #include "SerialPort.hpp"
 
@@ -86,10 +86,10 @@ int SerialPort::transact( int fd, int time_out ) {
         return -1;
     }
 
-    unsigned long long start_time = Common::NOWms();
+    unsigned long long start_time = Task::NOWms();
 
     for (;;) {
-        unsigned long long now = Common::NOWms();
+        unsigned long long now = Task::NOWms();
         int how_long;
 
         if ( time_out >= 0 ) { 
@@ -118,7 +118,7 @@ int SerialPort::transact( int fd, int time_out ) {
             break;
         } else {
 
-            if ( Common::shouldQuit() ) {
+            if ( Task::shouldQuit() ) {
                 errno = EINTR;
                 rc = -1;
                 break;

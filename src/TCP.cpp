@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-#include <Common.hpp>
+#include <Task.hpp>
 #include <Log.hpp>
 #include <TCP.hpp>
 
@@ -28,7 +28,7 @@ int TCP::accept( int server ) {
             break;
         }
  
-        if ( Common::shouldQuit() ) {
+        if ( Task::shouldQuit() ) {
             rc = -1;
             errno = EINTR;
             break;
@@ -91,7 +91,7 @@ void TCP::waitForHangup( int fd ) {
 
         int ret = poll( &pfd, 1, 333 );
     
-        if ( Common::shouldQuit() ) {
+        if ( Task::shouldQuit() ) {
             break;
         }
 

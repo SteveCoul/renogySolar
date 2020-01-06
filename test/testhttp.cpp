@@ -1,5 +1,5 @@
 
-#include <Common.hpp>
+#include <Task.hpp>
 #include <HTTPServer.hpp>
 
 class Test : public HTTPServerImplementation {
@@ -18,7 +18,7 @@ int main( Args* args ) {
     Test t;
     r.setHandler( &t );
 
-    while (Common::shouldQuit() == 0 ) {        
+    while (Task::shouldQuit() == 0 ) {        
         r.process();
     }
 

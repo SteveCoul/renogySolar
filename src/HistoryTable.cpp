@@ -21,7 +21,6 @@
 
 #include <sqlite3.h>
 
-#include "Common.hpp"
 #include "HistoryTable.hpp"
 #include "Log.hpp"
 

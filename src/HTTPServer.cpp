@@ -2,9 +2,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <sstream>
+#include <vector>
 
-#include <Common.hpp>
 #include "Log.hpp"
 #include <TCP.hpp>
 

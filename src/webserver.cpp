@@ -16,7 +16,7 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 #include <HTTPServer.hpp>
 
@@ -56,7 +56,7 @@ public:
         WebServer w;
         
         server.setHandler( &w );
-        while (Common::shouldQuit() == 0 ) {        
+        while (Task::shouldQuit() == 0 ) {        
             server.process();
         }
 

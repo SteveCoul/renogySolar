@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
 #include <TCP.hpp>
@@ -22,7 +22,7 @@
 int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
     unsigned char* ptr = (unsigned char*)buffer;
     struct pollfd pfd;
-    unsigned long long start_time = Common::NOWms();
+    unsigned long long start_time = Task::NOWms();
     int rc = 0;
 
     log( LOG_DEBUG, "Timed Read %d", length );
@@ -41,7 +41,7 @@ int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
         if ( timeout_ms < 0 ) {
             to = -1;
         } else {
-            to = Common::NOWms() - start_time;
+            to = Task::NOWms() - start_time;
             if ( to > timeout_ms ) {
                 errno = ETIMEDOUT;
                 rc = -1;
@@ -65,7 +65,7 @@ int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
         }
     }
 
-    log( LOG_DEBUG, "Timed Read took %llu ms", Common::NOWms() - start_time );
+    log( LOG_DEBUG, "Timed Read took %llu ms", Task::NOWms() - start_time );
     return rc;
 }
 

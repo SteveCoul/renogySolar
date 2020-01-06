@@ -8,7 +8,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 #include "SerialPort.hpp"
 #include <TCP.hpp>
@@ -53,7 +53,7 @@ public:
                 log( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
                 rc = 5;
             } else {
-                while( Common::shouldQuit() == 0 ) {    
+                while( Task::shouldQuit() == 0 ) {    
                     log( LOG_DEBUG, "Server waiting for client connect" );
                     int client_fd = TCP::accept( m_server_fd );
                     if ( client_fd >= 0 ) {

@@ -6,7 +6,7 @@
 
 #include "Args.hpp"
 
-class Common {
+class Task {
 public:
     static int shouldQuit( void );
     static unsigned long long NOWms( void );

@@ -18,7 +18,7 @@
 
 #include <sqlite3.h>
 
-#include "Common.hpp"
+#include "Task.hpp"
 #include "HistoryTable.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
@@ -85,7 +85,7 @@ int main( Args* args ) {
     t_days->setWindow( (time_t)(30*24*60*60) );
     
 
-    while ( Common::shouldQuit() == 0 ) {
+    while ( Task::shouldQuit() == 0 ) {
         struct pollfd pfd;
         memset( &pfd, 0, sizeof(pfd) );
         pfd.fd = server;

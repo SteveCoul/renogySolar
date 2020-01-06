@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "Args.hpp"
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
 #include "renogy.hpp"
@@ -63,7 +63,7 @@ public:
     int run() {
         fixTime();
         m_httpserver->setHandler( this );
-        while (Common::shouldQuit() == 0 ) {        
+        while (Task::shouldQuit() == 0 ) {        
             m_httpserver->process();
         }
         return 0;

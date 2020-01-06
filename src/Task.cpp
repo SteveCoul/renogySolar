@@ -15,15 +15,15 @@
 #include <cctype>
 
 #include "Args.hpp"
-#include "Common.hpp"
+#include "Task.hpp"
 #include "Log.hpp"
 
 static int should_quit = 0;
-int Common::shouldQuit( void ) {
+int Task::shouldQuit( void ) {
     return should_quit;
 }
 
-unsigned long long Common::NOWms( void ) {
+unsigned long long Task::NOWms( void ) {
     struct timeval tv;
     unsigned long long rc;
     (void)gettimeofday( &tv, NULL );
