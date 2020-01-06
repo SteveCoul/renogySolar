@@ -154,31 +154,6 @@ int Common::connectTCP( const char* ip, unsigned short port ) {
     return fd;
 }
 
-char* Common::mReadLine( int fd ) {         // FIXME
-    char* rc = (char*)malloc(65536);
-    int i = 0;
-    for (;;) {
-        int ret = read( fd, rc+i, 65536-i );
-        if ( ret < 0 ) {
-            free( (void*)rc );
-            rc = NULL;
-            log( LOG_WARNING, "failed read" );
-            break;
-        }
-
-        if ( ret == 0 ) { /* remote closed */
-            break;
-        }
-        for ( int j = i; j < i+ret; j++ ) {
-            if ( ( rc[j] == '\r' ) || ( rc[j] == '\n' ) ) {
-                rc[j] = '\0';
-                return rc;
-            }
-        }
-    }
-    return rc;
-}
-
 static
 void quit_handler( int sig ) {
     log( LOG_NOTICE, "SIGINT" );

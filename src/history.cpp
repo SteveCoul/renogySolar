@@ -27,6 +27,33 @@
 
 class History {
 public:
+
+static
+char* readline( int fd ) {         // FIXME
+    char* rc = (char*)malloc(65536);
+    int i = 0;
+    for (;;) {
+        int ret = read( fd, rc+i, 65536-i );
+        if ( ret < 0 ) {
+            free( (void*)rc );
+            rc = NULL;
+            log( LOG_WARNING, "failed read" );
+            break;
+        }
+
+        if ( ret == 0 ) { /* remote closed */
+            break;
+        }
+        for ( int j = i; j < i+ret; j++ ) {
+            if ( ( rc[j] == '\r' ) || ( rc[j] == '\n' ) ) {
+                rc[j] = '\0';
+                return rc;
+            }
+        }
+    }
+    return rc;
+}
+
 static
 int main( Args* args ) {
     int rport = args->getOptionAsInt( "rp" );
@@ -66,7 +93,7 @@ int main( Args* args ) {
         if ( pfd.revents ) {
             char buffer[1024];
             int client_fd = Common::tcpAccept( server );
-            char* line = Common::mReadLine( client_fd );
+            char* line = readline( client_fd );
 
             int i = 0;
             while( ( line[i] != ' ' ) && ( line[i] != '\t' ) ) i++;

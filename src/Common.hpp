@@ -14,7 +14,6 @@ public:
     static int createTCPServerSocket( unsigned short port );
     static void waitForTCPHangup( int fd );
     static int connectTCP( const char* ip, unsigned short port );
-    static char* mReadLine( int fd );
     static int readLine( int fd, std::string& result );
     static std::vector<std::string> tokenizeString( std::string source, std::string dividers );
     static std::string toUpper( std::string source );
