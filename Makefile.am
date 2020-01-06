@@ -42,6 +42,8 @@ history_SOURCES+=src/HistoryTable.cpp
 history_LDADD=
 history_LDADD+=libRenogySolarCommon.a
 history_LDADD+=-lsqlite3
+# YUCK : need a better way to handle thread linkage
+history_LDADD+=-lpthread
 
 bin_PROGRAMS+=webserver
 webserver_CPPFLAGS="-DWWW_DATA=\"$(wwwdir)\""
