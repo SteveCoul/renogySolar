@@ -20,6 +20,7 @@
 
 #include "Args.hpp"
 #include "Common.hpp"
+#include "Log.hpp"
 #include "ModBus.hpp"
 #include "renogy.hpp"
 #include <HTTPServer.hpp>

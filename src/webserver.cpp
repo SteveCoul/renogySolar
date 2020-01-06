@@ -17,6 +17,7 @@
 #include <sys/poll.h>
 
 #include "Common.hpp"
+#include "Log.hpp"
 #include <HTTPServer.hpp>
 
 class WebServer : public HTTPServerImplementation {

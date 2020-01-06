@@ -10,8 +10,6 @@ class Common {
 public:
     static int shouldQuit( void );
     static unsigned long long NOWms( void );
-    static void log( int level, const char* fmt, ... );
-	static void log( int level, std::string str );
     static int tcpAccept( int server );
     static int createTCPServerSocket( unsigned short port );
     static void waitForTCPHangup( int fd );
@@ -30,8 +28,6 @@ const char* defaultargs( void );
 
 #define ENTRYPOINT( app ) bootstrap getclass( void ) { return app::main; }
 #define DEFAULT_ARGS( text ) const char* defaultargs( void ) { return text; }
-
-#define log Common::log
 
 #endif
 

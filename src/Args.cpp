@@ -7,6 +7,7 @@
 
 #include "Args.hpp"
 #include "Common.hpp"
+#include "Log.hpp"
 
 #define PLACEHOLDER_FOR_BOOLEAN "placeholder_value"
 

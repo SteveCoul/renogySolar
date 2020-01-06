@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include <Common.hpp>
+#include "Log.hpp"
 
 #include <HTTPServer.hpp>
 

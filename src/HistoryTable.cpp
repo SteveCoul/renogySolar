@@ -23,6 +23,7 @@
 
 #include "Common.hpp"
 #include "HistoryTable.hpp"
+#include "Log.hpp"
 
 sqlite3*            HistoryTable::c_db;
 class HistoryTable* HistoryTable::c_list = 0;

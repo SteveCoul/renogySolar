@@ -20,6 +20,7 @@
 
 #include "Common.hpp"
 #include "HistoryTable.hpp"
+#include "Log.hpp"
 #include "ModBus.hpp"
 #include "XML2JSON.hpp"
 #include "renogy.hpp"

@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "Common.hpp"
+#include "Log.hpp"
 #include "SerialPort.hpp"
 
 ///

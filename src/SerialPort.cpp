@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "Common.hpp"
+#include "Log.hpp"
 #include "SerialPort.hpp"
 
 SerialPort::SerialPort( const char* device, unsigned int baud_rate )    :   m_baud(B115200)

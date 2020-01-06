@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "Common.hpp"
+#include "Log.hpp"
 #include "ModBus.hpp"
 
 unsigned int ModBus::calc_crc( unsigned char* buffer, int len ) {
