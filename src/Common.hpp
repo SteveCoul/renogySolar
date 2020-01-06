@@ -10,10 +10,6 @@ class Common {
 public:
     static int shouldQuit( void );
     static unsigned long long NOWms( void );
-    static int tcpAccept( int server );
-    static int createTCPServerSocket( unsigned short port );
-    static void waitForTCPHangup( int fd );
-    static int connectTCP( const char* ip, unsigned short port );
 };
 
 typedef int (*bootstrap)( Args* args );

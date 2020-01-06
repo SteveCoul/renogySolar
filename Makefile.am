@@ -20,6 +20,7 @@ libRenogySolarCommon_a_SOURCES+=src/Common.cpp
 libRenogySolarCommon_a_SOURCES+=src/HTTPServer.cpp
 libRenogySolarCommon_a_SOURCES+=src/Log.cpp
 libRenogySolarCommon_a_SOURCES+=src/ModBus.cpp
+libRenogySolarCommon_a_SOURCES+=src/TCP.cpp
 libRenogySolarCommon_a_SOURCES+=src/XML2JSON.cpp
 libRenogySolarCommon_a_SOURCES+=src/XMLParser.cpp
 

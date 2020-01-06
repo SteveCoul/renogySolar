@@ -17,6 +17,7 @@
 #include "Common.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
+#include <TCP.hpp>
 
 int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
     unsigned char* ptr = (unsigned char*)buffer;
@@ -99,7 +100,7 @@ int ModBus::readComplete( int fd, unsigned char* buffer, int len ) {
 }
 
 int ModBus::transact( unsigned char* buffer, int send_len, int rx_len ) {
-    int fd = Common::connectTCP( m_ip, m_port );
+    int fd = TCP::connect( m_ip, m_port );
     int rc = -1;
     if ( fd >= 0 ) {
 		std::stringstream   dbg;

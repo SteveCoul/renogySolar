@@ -22,6 +22,7 @@
 #include "HistoryTable.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
+#include <TCP.hpp>
 #include "XML2JSON.hpp"
 #include "renogy.hpp"
 
@@ -59,7 +60,7 @@ int main( Args* args ) {
     int rport = args->getOptionAsInt( "rp" );
     const char* raddr = args->getOptionAsString( "ra" );
 
-    int server = Common::createTCPServerSocket( args->getOptionAsInt( "p" ) );
+    int server = TCP::createServerSocket( args->getOptionAsInt( "p" ) );
 
     HistoryTable::cinit( args->getOptionAsString("f") );
 
@@ -92,7 +93,7 @@ int main( Args* args ) {
         (void)poll( &pfd, 1, 1000 );
         if ( pfd.revents ) {
             char buffer[1024];
-            int client_fd = Common::tcpAccept( server );
+            int client_fd = TCP::accept( server );
             char* line = readline( client_fd );
 
             int i = 0;
@@ -144,7 +145,7 @@ int main( Args* args ) {
             }
 
             free( (void*)line );
-            Common::waitForTCPHangup( client_fd );
+            TCP::waitForHangup( client_fd );
 
             close( client_fd );
         }

@@ -6,6 +6,7 @@
 
 #include <Common.hpp>
 #include "Log.hpp"
+#include <TCP.hpp>
 
 #include <HTTPServer.hpp>
 
@@ -23,7 +24,7 @@ HTTPServer::HTTPServer( int port ) {
     m_default_handler = new DefaultHandler();
     m_handler = m_default_handler;
     m_port = port;
-    m_fd = Common::createTCPServerSocket( m_port );
+    m_fd = TCP::createServerSocket( m_port );
 }
 
 HTTPServer::~HTTPServer() {
@@ -40,7 +41,7 @@ void HTTPServer::process( int timeout ) {
 
     if ( timeout >= 0 ) log( LOG_CRIT, "TIMEOUT NOT IMPLEMENTED FOR HTTP SERVER YET" );
 
-    int client = Common::tcpAccept( m_fd );
+    int client = TCP::accept( m_fd );
     if ( client < 0 ) return;
 
     log( LOG_INFO, "Incoming HTTP Request" );    
@@ -105,7 +106,7 @@ void HTTPServer::process( int timeout ) {
 
     log( LOG_INFO, "%s", p );
     (void)write( client, p, len );
-    Common::waitForTCPHangup( client );
+    TCP::waitForHangup( client );
     (void)close( client );
 }
 

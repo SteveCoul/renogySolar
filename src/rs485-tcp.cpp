@@ -11,6 +11,7 @@
 #include "Common.hpp"
 #include "Log.hpp"
 #include "SerialPort.hpp"
+#include <TCP.hpp>
 
 ///
 /// \class RS485TCP
@@ -47,14 +48,14 @@ public:
         SerialPort serial( device, baud );
         if ( serial.open() >= 0 ) { 
 
-            m_server_fd = Common::createTCPServerSocket( port );
+            m_server_fd = TCP::createServerSocket( port );
             if ( m_server_fd < 0 ) {
                 log( LOG_CRIT, "Failed to create server socket [%s]\n", strerror(errno) );
                 rc = 5;
             } else {
                 while( Common::shouldQuit() == 0 ) {    
                     log( LOG_DEBUG, "Server waiting for client connect" );
-                    int client_fd = Common::tcpAccept( m_server_fd );
+                    int client_fd = TCP::accept( m_server_fd );
                     if ( client_fd >= 0 ) {
                         log( LOG_DEBUG,"  Client %d\n", client_fd );
 
