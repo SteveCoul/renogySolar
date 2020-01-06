@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +22,7 @@
 #include "Common.hpp"
 #include "ModBus.hpp"
 #include "renogy.hpp"
+#include <HTTPServer.hpp>
 
 ///
 /// \class Controller
@@ -35,173 +35,151 @@
 ///
 /// \see RS485TCP
 ///
-class Controller {
+class Controller : public HTTPServerImplementation {
 public:
 
     static
     int main( Args* args ) {
-    
-        int m_server_fd;
-    
+   
+        Controller c(args);
+        return c.run();
+    }
+
+    Controller( Args* args ) {
         int rport = args->getOptionAsInt( "rp" );
         const char* raddr = args->getOptionAsString( "ra" );
-        int id = args->getOptionAsInt( "i" );
+        m_id = args->getOptionAsInt( "i" );
+        m_modbus = new ModBus( raddr, rport, m_id );
         int myport = args->getOptionAsInt( "p" );
-    
-        signal( SIGPIPE, SIG_IGN );
+        m_httpserver = new HTTPServer( myport );
+    }
 
-        log( LOG_INFO, "Use rs485 server at %s:%d, and query renogy device %d, serving on port %d", raddr, rport, myport );
+    ~Controller() {
+        delete m_modbus;
+        delete m_httpserver;
+    }
 
-        ModBus modbus( raddr, rport, id );
-    
-        m_server_fd = Common::createTCPServerSocket( myport );
-        if ( m_server_fd >= 0 ) {
-            while( Common::shouldQuit() == 0 ) {
-                int client_fd = Common::tcpAccept( m_server_fd );
-                if ( client_fd > 0 ) {
-                    ModBus::Value value[3];
-
-                    // TODO handle error/timeout on modbus read
-    
-                    time_t  now;
-                    struct tm* tm;
-    
-                    (void)time(&now);
-                    tm = localtime( &now );
-    
-                    unsigned int    local_year = tm->tm_year + 1900;
-                    unsigned int    local_month = tm->tm_mon + 1;
-                    unsigned int    local_day = tm->tm_mday;
-                    unsigned int    local_hour = tm->tm_hour;
-                    unsigned int    local_minute = tm->tm_min;
-                    unsigned int    local_seconds = tm->tm_sec;
-                    int local_time = ( local_hour * 3600 ) + ( local_minute * 60 ) + local_seconds;
-    
-                    modbus.readVariable( RENOGY_RTC_MINUTE_SECOND, 1, 3, value ); 
-    
-                    unsigned int    remote_year = value[2].rawHI() + 2000;
-                    unsigned int    remote_month = value[2].rawLO();
-                    unsigned int    remote_day = value[1].rawHI();
-                    unsigned int    remote_hour = value[1].rawLO();
-                    unsigned int    remote_minute = value[0].rawHI();
-                    unsigned int    remote_seconds = value[0].rawLO();
-                    int remote_time = ( remote_hour * 3600 ) + ( remote_minute * 60 ) + remote_seconds;
-    
-                    int time_difference = abs( local_time - remote_time );
-    
-                    if ( ( local_year != remote_year ) ||
-                         ( local_month != remote_month ) ||
-                         ( local_day != remote_day ) ||
-                         ( time_difference > 30 ) ) {
-    
-                        value[2].set( local_year - 2000, local_month );
-                        value[1].set( local_day, local_hour );
-                        value[0].set( local_minute, local_seconds );
-                    
-                        (void)modbus.writeRawVariable( RENOGY_RTC_MINUTE_SECOND, 3, value );
-                    }
-    
-                    unsigned int tmp;
-                    float tmpf;
-                    std::stringstream body;
-   
-                    body << "<controller id=\"" << id << "\">\n"; 
-   
-                    body << "\t<pv_array_rating>\n"; 
-
-                    (void)modbus.readVariable( RENOGY_RATED_INPUT_VOLTAGE, 100, 1, value ); 
-                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
-                
-                    (void)modbus.readVariable( RENOGY_RATED_INPUT_CURRENT, 100, 1, value ); 
-                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
-                    
-                    (void)modbus.readVariable( RENOGY_RATED_INPUT_POWER, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<power>" << tmpf << "</power>\n";
-
-                    body << "\t</pv_array_rating>\n"; 
-                    
-                    body << "\t<pv_array_now>\n"; 
-
-                    (void)modbus.readVariable( RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
-                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
-                    
-                    (void)modbus.readVariable( RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
-                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
-    
-                    (void)modbus.readVariable( RENOGY_PV_INPUT_POWER, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<power>" << tmpf << "</power>\n";
-                    
-                    body << "\t</pv_array_now>\n"; 
-
-                    body << "\t<battery>\n"; 
-
-                    (void)modbus.readVariable( RENOGY_BATTERY_VOLTAGE, 100, 1, value ); 
-                    body << "\t\t<voltage>" << value[0].asFloat() << "</voltage>\n";
-    
-                    (void)modbus.readVariable( RENOGY_BATTERY_CHARGING_CURRENT, 100, 1, value ); 
-                    body << "\t\t<current>" << value[0].asFloat() << "</current>\n";
-    
-                    (void)modbus.readVariable( RENOGY_BATTERY_STATE_OF_CHARGE, 1, 1, value ); 
-                    body << "\t\t<state_of_charge>" << value[0].asFloat() << "</state_of_charge>\n";
-    
-                    (void)modbus.readVariable( RENOGY_NET_BATTERY_CURRENT_L, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<net_current>" << tmpf << "</net_current>\n";
-                    
-                    body << "\t</battery>\n"; 
-    
-                    body << "\t<generation>\n"; 
-
-                    (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_TODAY_L, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<today>" << tmpf << "</today>\n";
-    
-                    (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_MONTH_L, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<this_month>" << tmpf << "</this_month>\n";
-    
-                    (void)modbus.readVariable( RENOGY_GENERATED_ENERGY_YEAR_L, 100, 2, value ); 
-                    tmp = ( value[1].raw() << 16 ) | value[0].raw();
-                    tmpf = ((float)tmp)/100.0f;
-                    body << "\t\t<this_year>" << tmpf << "</this_year>\n";
-
-                    body << "\t</generation>\n"; 
-                    
-                    body << "</controller>\n"; 
- 
-                    std::string s_body = body.str();
- 
-                    const char* c_body = s_body.c_str();
-
-                    std::stringstream head;
-                    head << "HTTP/1.0 200 OK\r\n";
-                    head << "Access-Control-Allow-Origin: *\r\n";
-                    head << "Content-Length: " << strlen(c_body) << "\r\n";
-                    head << "\r\n";
-
-                    std::string s_head = head.str();
-                    const char* c_head = s_head.c_str();
-
-                    write( client_fd, c_head, strlen(c_head) );
-                    write( client_fd, c_body, strlen(c_body) );
-
-                    Common::waitForTCPHangup( client_fd );
-                    close( client_fd );
-                }
-            }
+    int run() {
+        fixTime();
+        m_httpserver->setHandler( this );
+        while (Common::shouldQuit() == 0 ) {        
+            m_httpserver->process();
         }
         return 0;
     }
+         
+    int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) {
+        if ( path.compare("/data.xml" ) != 0 ) {
+            response = "Not Found";
+            return 404;
+        }
 
+        m_body.str("");
+        m_body << "<controller id=\"" << m_id << "\">\n"; 
+
+        m_body << "\t<pv_array_rating>\n"; 
+        singleFloatVariable( RENOGY_RATED_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( RENOGY_RATED_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        doubleFloatVariable( RENOGY_RATED_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
+        m_body << "\t</pv_array_rating>\n"; 
+
+        m_body << "\t<pv_array_now>\n"; 
+        singleFloatVariable( RENOGY_PV_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( RENOGY_PV_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        doubleFloatVariable( RENOGY_PV_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
+        m_body << "\t</pv_array_now>\n"; 
+
+        m_body << "\t<battery>\n"; 
+        singleFloatVariable( RENOGY_BATTERY_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( RENOGY_BATTERY_CHARGING_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        singleFloatVariable( RENOGY_BATTERY_STATE_OF_CHARGE, 1, "\t\t<state_of_charge>", "</state_of_charge>\n" );
+        doubleFloatVariable( RENOGY_NET_BATTERY_CURRENT_L, 100, "\t\t<net_current>", "</net_current>\n" );
+        m_body << "\t</battery>\n"; 
+
+        m_body << "\t<generation>\n"; 
+        doubleFloatVariable( RENOGY_GENERATED_ENERGY_TODAY_L, 100, "\t\t<today>", "</today>\n" );
+        doubleFloatVariable( RENOGY_GENERATED_ENERGY_MONTH_L, 100, "\t\t<this_month>", "</this_month>\n" );
+        doubleFloatVariable( RENOGY_GENERATED_ENERGY_YEAR_L, 100, "\t\t<this_year>", "</this_year>\n" );
+        m_body << "\t</generation>\n"; 
+                    
+        m_body << "</controller>\n"; 
+ 
+        content_type = "text/xml";
+        body = m_body.str();
+        response = "OK";
+        return 200;
+    }
+
+private:
+
+    void singleFloatVariable( int reg, int scale, const char* prefix, const char* postfix ) {
+        ModBus::Value   value;
+        (void)m_modbus->readVariable( reg, scale, 1, &value );
+        m_body << prefix << value.asFloat() << postfix;
+    }
+
+    void doubleFloatVariable( int reg, int scale, const char* prefix, const char* postfix ) {
+        ModBus::Value   value[2];
+        (void)m_modbus->readVariable( reg, scale, 2, value );
+
+        unsigned int tmp;
+        tmp = ( value[1].raw() << 16 ) | value[0].raw();
+
+        float tmpf = ((float)tmp)/scale;
+        m_body << prefix << tmpf << postfix;
+    }
+
+    void fixTime() {
+        ModBus::Value value[3];
+
+        // TODO handle error/timeout on modbus read
+
+        time_t  now;
+        struct tm* tm;
+
+        (void)time(&now);
+        tm = localtime( &now );
+
+        unsigned int    local_year = tm->tm_year + 1900;
+        unsigned int    local_month = tm->tm_mon + 1;
+        unsigned int    local_day = tm->tm_mday;
+        unsigned int    local_hour = tm->tm_hour;
+        unsigned int    local_minute = tm->tm_min;
+        unsigned int    local_seconds = tm->tm_sec;
+        int local_time = ( local_hour * 3600 ) + ( local_minute * 60 ) + local_seconds;
+
+        m_modbus->readVariable( RENOGY_RTC_MINUTE_SECOND, 1, 3, value ); 
+
+        unsigned int    remote_year = value[2].rawHI() + 2000;
+        unsigned int    remote_month = value[2].rawLO();
+        unsigned int    remote_day = value[1].rawHI();
+        unsigned int    remote_hour = value[1].rawLO();
+        unsigned int    remote_minute = value[0].rawHI();
+        unsigned int    remote_seconds = value[0].rawLO();
+        int remote_time = ( remote_hour * 3600 ) + ( remote_minute * 60 ) + remote_seconds;
+
+        int time_difference = abs( local_time - remote_time );
+
+        if ( ( local_year != remote_year ) ||
+             ( local_month != remote_month ) ||
+             ( local_day != remote_day ) ||
+             ( time_difference > 30 ) ) {
+
+            value[2].set( local_year - 2000, local_month );
+            value[1].set( local_day, local_hour );
+            value[0].set( local_minute, local_seconds );
+        
+            (void)m_modbus->writeRawVariable( RENOGY_RTC_MINUTE_SECOND, 3, value );
+        }
+    }
+  
+private:
+    std::stringstream   m_body;
+    int                 m_id;
+    ModBus*             m_modbus;
+    HTTPServer*         m_httpserver;
 };
-
+             
 ENTRYPOINT( Controller )
 DEFAULT_ARGS(   "-ra:IP address of remote serial port controller:127.0.0.1"
                 "-rp:TCP port for serial controller:32700"
