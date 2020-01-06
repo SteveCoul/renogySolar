@@ -22,7 +22,7 @@
 #include "Task.hpp"
 #include "Log.hpp"
 #include "ModBus.hpp"
-#include "renogy.hpp"
+#include "Renogy.hpp"
 #include <HTTPServer.hpp>
 
 ///
@@ -79,28 +79,28 @@ public:
         m_body << "<controller id=\"" << m_id << "\">\n"; 
 
         m_body << "\t<pv_array_rating>\n"; 
-        singleFloatVariable( RENOGY_RATED_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
-        singleFloatVariable( RENOGY_RATED_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
-        doubleFloatVariable( RENOGY_RATED_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
+        singleFloatVariable( Renogy::RATED_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( Renogy::RATED_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        doubleFloatVariable( Renogy::RATED_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
         m_body << "\t</pv_array_rating>\n"; 
 
         m_body << "\t<pv_array_now>\n"; 
-        singleFloatVariable( RENOGY_PV_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
-        singleFloatVariable( RENOGY_PV_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
-        doubleFloatVariable( RENOGY_PV_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
+        singleFloatVariable( Renogy::PV_INPUT_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( Renogy::PV_INPUT_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        doubleFloatVariable( Renogy::PV_INPUT_POWER, 100, "\t\t<power>", "</power>\n" );
         m_body << "\t</pv_array_now>\n"; 
 
         m_body << "\t<battery>\n"; 
-        singleFloatVariable( RENOGY_BATTERY_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
-        singleFloatVariable( RENOGY_BATTERY_CHARGING_CURRENT, 100, "\t\t<current>", "</current>\n" );
-        singleFloatVariable( RENOGY_BATTERY_STATE_OF_CHARGE, 1, "\t\t<state_of_charge>", "</state_of_charge>\n" );
-        doubleFloatVariable( RENOGY_NET_BATTERY_CURRENT_L, 100, "\t\t<net_current>", "</net_current>\n" );
+        singleFloatVariable( Renogy::BATTERY_VOLTAGE, 100, "\t\t<voltage>", "</voltage>\n" );
+        singleFloatVariable( Renogy::BATTERY_CHARGING_CURRENT, 100, "\t\t<current>", "</current>\n" );
+        singleFloatVariable( Renogy::BATTERY_STATE_OF_CHARGE, 1, "\t\t<state_of_charge>", "</state_of_charge>\n" );
+        doubleFloatVariable( Renogy::NET_BATTERY_CURRENT_L, 100, "\t\t<net_current>", "</net_current>\n" );
         m_body << "\t</battery>\n"; 
 
         m_body << "\t<generation>\n"; 
-        doubleFloatVariable( RENOGY_GENERATED_ENERGY_TODAY_L, 100, "\t\t<today>", "</today>\n" );
-        doubleFloatVariable( RENOGY_GENERATED_ENERGY_MONTH_L, 100, "\t\t<this_month>", "</this_month>\n" );
-        doubleFloatVariable( RENOGY_GENERATED_ENERGY_YEAR_L, 100, "\t\t<this_year>", "</this_year>\n" );
+        doubleFloatVariable( Renogy::GENERATED_ENERGY_TODAY_L, 100, "\t\t<today>", "</today>\n" );
+        doubleFloatVariable( Renogy::GENERATED_ENERGY_MONTH_L, 100, "\t\t<this_month>", "</this_month>\n" );
+        doubleFloatVariable( Renogy::GENERATED_ENERGY_YEAR_L, 100, "\t\t<this_year>", "</this_year>\n" );
         m_body << "\t</generation>\n"; 
                     
         m_body << "</controller>\n"; 
@@ -149,7 +149,7 @@ private:
         unsigned int    local_seconds = tm->tm_sec;
         int local_time = ( local_hour * 3600 ) + ( local_minute * 60 ) + local_seconds;
 
-        m_modbus->readVariable( RENOGY_RTC_MINUTE_SECOND, 1, 3, value ); 
+        m_modbus->readVariable( Renogy::RTC_MINUTE_SECOND, 1, 3, value ); 
 
         unsigned int    remote_year = value[2].rawHI() + 2000;
         unsigned int    remote_month = value[2].rawLO();
@@ -170,7 +170,7 @@ private:
             value[1].set( local_day, local_hour );
             value[0].set( local_minute, local_seconds );
         
-            (void)m_modbus->writeRawVariable( RENOGY_RTC_MINUTE_SECOND, 3, value );
+            (void)m_modbus->writeRawVariable( Renogy::RTC_MINUTE_SECOND, 3, value );
         }
     }
   

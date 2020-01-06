@@ -24,7 +24,7 @@
 #include "ModBus.hpp"
 #include <TCP.hpp>
 #include "XML2JSON.hpp"
-#include "renogy.hpp"
+#include "Renogy.hpp"
 
 class History {
 public:
@@ -175,9 +175,9 @@ int main( Args* args ) {
                             tm->tm_min,
                             tm->tm_sec);
 
-            (void)modbus.readVariable( RENOGY_PV_INPUT_VOLTAGE, 100, 1, value ); 
+            (void)modbus.readVariable( Renogy::PV_INPUT_VOLTAGE, 100, 1, value ); 
             float input_voltage = value[0].asFloat();
-            (void)modbus.readVariable( RENOGY_PV_INPUT_CURRENT, 100, 1, value ); 
+            (void)modbus.readVariable( Renogy::PV_INPUT_CURRENT, 100, 1, value ); 
             float input_current = value[0].asFloat();
 
             t_recent->addRecord( time(NULL), id, input_voltage, input_current );
