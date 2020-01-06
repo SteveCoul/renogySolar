@@ -23,9 +23,23 @@
 class WebServer : public HTTPServerImplementation {
 public:
 
+		std::string loadTextFile( std::string path ) {
+			std::string r;
+			int fd = open( path.c_str(), O_RDONLY );
+			if ( fd >= 0 ) {
+				char buffer[1024];
+				size_t len;
+				while ( (len=read(fd,buffer,sizeof(buffer))) > 0 ) {
+					r.append( buffer, len );
+				}
+				close( fd );
+			}
+			return r;
+		}
+
     int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) {
         if ( path.compare("/")==0 ) path = "/index.html";
-        body = Common::loadTextFile( "www" + path );
+        body = loadTextFile( "www" + path );
         if ( body.size() > 0 ) {
             response = "OK";
             return 200;

@@ -16,6 +16,10 @@ public:
     void setHandler( HTTPServerImplementation* who );
     void process( int timeout = -1 );
 private:
+    static int readLine( int fd, std::string& result );
+    static std::vector<std::string> tokenizeString( std::string source, std::string dividers );
+    static std::string toUpper( std::string source );
+private:
     int                             m_fd;
     int                         m_port;
     HTTPServerImplementation*     m_default_handler;

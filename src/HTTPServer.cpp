@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -46,7 +47,7 @@ void HTTPServer::process( int timeout ) {
     std::vector<std::string> request;
     for (;;) {
         std::string str;
-        int ret = Common::readLine( client, str );
+        int ret = readLine( client, str );
         if ( ret < 0 ) {
             log( LOG_CRIT, "Error reading http request and I dont handle it very well" );
             break;
@@ -59,9 +60,9 @@ void HTTPServer::process( int timeout ) {
     std::string url;
     /* pretty dumb server - just look for the GET line, don't care about anything else at this point */
     for( std::vector<std::string>::iterator it = request.begin(); it != request.end(); it++ ) {
-        std::vector<std::string> tokens = Common::tokenizeString( (*it), " \t" );
+        std::vector<std::string> tokens = tokenizeString( (*it), " \t" );
         if ( tokens.size() >= 3 ) {
-            if ( Common::toUpper( tokens.at(0) ).compare( "GET" ) == 0 ) {
+            if ( toUpper( tokens.at(0) ).compare( "GET" ) == 0 ) {
                 url = tokens.at(1);
                 break;
             }
@@ -79,7 +80,7 @@ void HTTPServer::process( int timeout ) {
         http_response = "Server Error";
     } else {
         log( LOG_INFO, "Looks like a GET for '%s'", url.c_str() );
-        std::vector<std::string> split = Common::tokenizeString( url, "?" );
+        std::vector<std::string> split = tokenizeString( url, "?" );
 
         std::string path = split.at(0);
         std::string query;
@@ -106,5 +107,53 @@ void HTTPServer::process( int timeout ) {
     (void)write( client, p, len );
     Common::waitForTCPHangup( client );
     (void)close( client );
+}
+
+int HTTPServer::readLine( int fd, std::string& result ) {
+    result = "";
+    for (;;) {
+        char c;
+        int ret = read( fd, &c, 1 );
+        if ( ret == 0 ) 
+            break;
+        else if ( ret < 0 ) {
+            log( LOG_WARNING, "error in read() [%s]", strerror(errno) );
+            return -1;
+        }
+
+        if ( c == '\r' ) {
+            /* ignore */
+        } else if ( c == '\n' ) {
+            break;
+        } else {
+            result += c;
+        }
+    }
+    return result.length();
+}
+
+std::vector<std::string> HTTPServer::tokenizeString( std::string source, std::string dividers ) {
+    std::vector<std::string> tokens;
+    for (;;) {
+        size_t where;
+        while ( ( where = source.find_first_of( dividers ) ) == 0 ) 
+            source.erase(0,1);
+        if ( source.empty() ) break;
+        if ( where == std::string::npos ) {
+            tokens.push_back( source );
+            break;
+        }
+        tokens.push_back( source.substr( 0, where ) );
+        source.erase( 0, where );
+    }
+    return tokens;
+}
+
+std::string HTTPServer::toUpper( std::string source ) {
+    std::string ret;
+    std::for_each( source.begin(), source.end(), [&]( char const &c ) {
+        ret+=std::toupper( c );
+    } );
+    return ret;
 }
 
