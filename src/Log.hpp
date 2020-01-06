@@ -1,6 +1,8 @@
 #ifndef __Log_hpp__
 #define __Log_hpp__
 
+#include <syslog.h>
+
 #include <string>
 
 class Log {
