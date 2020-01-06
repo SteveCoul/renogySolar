@@ -25,7 +25,7 @@ HTTPServer::HTTPServer( int port ) {
 }
 
 HTTPServer::~HTTPServer() {
-    delete m_handler;
+    delete m_default_handler;
     close( m_fd );
 }
 
