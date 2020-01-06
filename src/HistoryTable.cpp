@@ -26,12 +26,14 @@
 
 sqlite3*            HistoryTable::c_db;
 class HistoryTable* HistoryTable::c_list = 0;
+std::recursive_mutex HistoryTable::c_lock;
 
 HistoryTable::HistoryTable( const char* name )  : m_window(1)
                                                 , m_expiry(1)
                                                 , m_cascade_time(1)
                                                 , m_cascade_target(0)
                                                 {
+    c_lock.lock();
     char c[128];
     m_name = strdup( name );
     snprintf( c, sizeof(c), "CREATE TABLE IF NOT EXISTS %s( id INT, timestamp DATETIME, input_voltage FLOAT(24), input_current FLOAT(24) );", name );
@@ -45,6 +47,7 @@ HistoryTable::HistoryTable( const char* name )  : m_window(1)
 
     m_next = c_list;
     c_list = this;
+    c_lock.unlock();
 }
 
 HistoryTable::~HistoryTable() {
@@ -57,6 +60,7 @@ void HistoryTable::addRecord( time_t now, int id, float input_voltage, float inp
     mktimestamp( timestamp, now );
     log( LOG_INFO, "%s->%s( %s, %d, %f, %f )\n", m_name, __FUNCTION__, timestamp, id, input_voltage, input_current );
     
+    c_lock.lock();
     char c[512];
     snprintf( c, sizeof(c), "DELETE FROM %s WHERE id=%d and timestamp='%s';", m_name, id, timestamp );
     sqlExec( c );
@@ -89,6 +93,7 @@ void HistoryTable::addRecord( time_t now, int id, float input_voltage, float inp
             m_cascade_target->addRecord( new_time, id, av.voltage, av.current );
         }
     }
+    c_lock.unlock();
 }
 
 void HistoryTable::setWindow( time_t t ) {
@@ -114,7 +119,9 @@ std::string HistoryTable::toXML( int id ) {
     mktimestamp( end_time, time(NULL) );
 
     result << "<xml>\n";
+    c_lock.lock();
     forEachInTimeRange( id, start_time, end_time, &HistoryTable::toXMLcallback, &result );
+    c_lock.unlock();
     result << "</xml>\n";
     return result.str();
 }

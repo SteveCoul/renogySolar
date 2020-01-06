@@ -2,6 +2,7 @@
 #ifndef __HistoryHistoryTable_hpp__
 #define __HistoryHistoryTable_hpp__
 
+#include <mutex>
 #include <string>
 
 ///
@@ -53,6 +54,7 @@ public:
 private:
     static  sqlite3*        c_db;
     static class HistoryTable*      c_list;
+    static std::recursive_mutex            c_lock;
 };
 
 #endif
