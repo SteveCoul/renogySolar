@@ -14,14 +14,9 @@
 #include "Log.hpp"
 #include "SerialPort.hpp"
 
-SerialPort::SerialPort( const char* device, unsigned int baud_rate )    :   m_baud(B115200)
-                                                                        ,   m_device(NULL)
+SerialPort::SerialPort( std::string device, unsigned int baud_rate )    :   m_baud(B115200)
+                                                                        ,   m_device(device)
                                                                         ,   m_fd(-1) {
-    m_device = strdup( device );
-    if ( m_device == NULL ) {
-        log( LOG_ERR, "out of memory creating SerialPort" );
-    }
-
     switch( baud_rate ) {
     case 115200:
         m_baud = B115200;
@@ -35,15 +30,14 @@ SerialPort::SerialPort( const char* device, unsigned int baud_rate )    :   m_ba
 
 SerialPort::~SerialPort() {
     (void)close();
-    if ( m_device ) free( (void*)m_device );
 }
 
 int SerialPort::open() {
     int rc = -1;
     struct termios  term;
-    m_fd = ::open( m_device, O_RDWR | O_NDELAY | O_NOCTTY );
+    m_fd = ::open( m_device.c_str(), O_RDWR | O_NDELAY | O_NOCTTY );
     if ( m_fd < 0 ) {
-        log( LOG_CRIT, "Failed to open %s [%s]\n", m_device, strerror(errno) );
+        log( LOG_CRIT, "Failed to open %s [%s]\n", m_device.c_str(), strerror(errno) );
     } else {
         if ( tcgetattr( m_fd, &term ) < 0 ) {
             log( LOG_CRIT, "Failed to get serial config : %s\n", strerror(errno) );

@@ -3,6 +3,8 @@
 
 #include <termios.h>
 
+#include <string>
+
 ///
 /// \class SerialPort
 ///
@@ -16,7 +18,7 @@ public:
     /// \param  device      Path to serial port device
     /// \param  baud_rate   Serial port speed
     ///
-    SerialPort( const char* device, unsigned int baud_rate );
+    SerialPort( std::string device, unsigned int baud_rate );
 
     ///
     /// \brief  destructor
@@ -55,7 +57,7 @@ private:
     /// Configured baud rate
     speed_t     m_baud;
     /// Device path
-    char*       m_device;
+    std::string m_device;
     /// Device file descriptor
     int         m_fd;
 };
