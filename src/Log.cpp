@@ -1,4 +1,4 @@
-
+#include <stdarg.h>
 #include <stdlib.h>
 #include <syslog.h>
 
