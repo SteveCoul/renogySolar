@@ -40,13 +40,16 @@
 class Controller : public HTTPServerImplementation {
 public:
 
+    /// \brief  Entrypoint, Create a controller class and run it.
+    /// \return exit code.
     static
     int main( Args* args ) {
-   
         Controller c(args);
         return c.run();
     }
 
+    /// \brief  Construct controller task.
+    /// \param  args    Command line arguments.
     Controller( Args* args ) {
         int rport = args->getOptionAsInt( "rp" );
         const char* raddr = args->getOptionAsString( "ra" );
@@ -56,11 +59,16 @@ public:
         m_httpserver = new HTTPServer( myport );
     }
 
+    /// \brief  Destroy object.
     ~Controller() {
         delete m_modbus;
         delete m_httpserver;
     }
 
+    /// \brief  Run the task until quit.
+    /// First ensures remote device has the correct time of day, then runs a
+    /// webserver which will respond to requests for data.
+    /// \return -ve on error.
     int run() {
         fixTime();
         m_httpserver->setHandler( this );
@@ -69,7 +77,16 @@ public:
         }
         return 0;
     }
-         
+        
+    /// \brief  Action an incoming HTTP request.
+    /// As is, will serve two files /data.xml and /data.json which represent the current state
+    /// of a charge controller using ModBus to query the hardware.
+    /// \param  path            File requested.
+    /// \param  query           Any query string on URL.
+    /// \param  response        Where to store http response line text.
+    /// \param  content_type    Where to store resulting content type field.
+    /// \param  body            Where to store any body for response.
+    /// \return http response code. 
     int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) {
         if ( ( path.compare("/data.xml" ) != 0 ) && ( path.compare("/data.json" ) != 0 ) ) {
             response = "Not Found";
@@ -106,14 +123,13 @@ public:
                     
         m_body << "</controller>\n"; 
 
-        if ( path.compare("data.xml") == 0 ) { 
+        if ( path.compare("/data.xml") == 0 ) { 
             content_type = "text/xml";
             body = m_body.str();
         } else {
             content_type = "text/json";
             XML2JSON json;
             std::string body_string = m_body.str();
-
             body = json.convert( body_string );
         }
         response = "OK";
@@ -122,12 +138,22 @@ public:
 
 private:
 
+    /// \brief  Read a single register over Modbus, and output suitable text for the XML output via m_body.
+    /// \param  reg     Modbus Register to read.
+    /// \param  scale   Scale to apply.
+    /// \param  prefix  Start text to write.
+    /// \param  postfix End text to write after value.
     void singleFloatVariable( int reg, int scale, const char* prefix, const char* postfix ) {
         ModBus::Value   value;
         (void)m_modbus->readVariable( reg, scale, 1, &value );
         m_body << prefix << value.asFloat() << postfix;
     }
 
+    /// \brief  Read a pair of registers over Modbus, and output suitable text for the XML output via m_body.
+    /// \param  reg     First Modbus Register to read.
+    /// \param  scale   Scale to apply.
+    /// \param  prefix  Start text to write.
+    /// \param  postfix End text to write after value.
     void doubleFloatVariable( int reg, int scale, const char* prefix, const char* postfix ) {
         ModBus::Value   value[2];
         (void)m_modbus->readVariable( reg, scale, 2, value );
@@ -139,10 +165,11 @@ private:
         m_body << prefix << tmpf << postfix;
     }
 
+    /// \brief  Query device over modbus for time-of-day and update it with local time if required.
     void fixTime() {
         ModBus::Value value[3];
 
-        // TODO handle error/timeout on modbus read
+        /// \todo handle error/timeout on modbus read
 
         time_t  now;
         struct tm* tm;
@@ -184,10 +211,10 @@ private:
     }
   
 private:
-    std::stringstream   m_body;
-    int                 m_id;
-    ModBus*             m_modbus;
-    HTTPServer*         m_httpserver;
+    std::stringstream   m_body;         ///< A stream where the XML output is generated on request.
+    int                 m_id;           ///< Modbus ID for device this controller operates on.
+    ModBus*             m_modbus;       ///< Modbus class.
+    HTTPServer*         m_httpserver;   ///< HTTP server.
 };
              
 ENTRYPOINT( Controller )
