@@ -14,9 +14,9 @@
 #include <iomanip>
 #include <sstream>
 
-#include "Task.hpp"
-#include "Log.hpp"
-#include "ModBus.hpp"
+#include <Log.hpp>
+#include <ModBus.hpp>
+#include <Task.hpp>
 #include <TCP.hpp>
 
 int ModBus::timedRead( int fd, void* buffer, size_t length, int timeout_ms ) {
@@ -88,11 +88,11 @@ unsigned int ModBus::calc_crc( unsigned char* buffer, int len ) {
 }
 
 int ModBus::writeComplete( int fd, unsigned char* buffer, int len ) {
-    return write( fd, buffer, len ); //FIXME
+    return write( fd, buffer, len ); /// \todo  fix ModBus::writeComplete()
 }
 
 int ModBus::readComplete( int fd, unsigned char* buffer, int len ) {
-    int rc = timedRead( fd, (void*)buffer, (size_t)len, 350 );  /* todo, make timeout configurable */
+    int rc = timedRead( fd, (void*)buffer, (size_t)len, 350 );  /// \todo make timeout configurable 
     if ( rc < 0 ) {
         log( LOG_WARNING, "modbus transaction reply didn't return [%s]", strerror(errno) );
     }
@@ -100,7 +100,7 @@ int ModBus::readComplete( int fd, unsigned char* buffer, int len ) {
 }
 
 int ModBus::transact( unsigned char* buffer, int send_len, int rx_len ) {
-    int fd = TCP::connect( m_ip, m_port );
+    int fd = TCP::connect( m_ip.c_str(), m_port );
     int rc = -1;
     if ( fd >= 0 ) {
 		std::stringstream   dbg;
@@ -114,7 +114,8 @@ int ModBus::transact( unsigned char* buffer, int send_len, int rx_len ) {
             if ( readComplete( fd, buffer, 3 ) >= 0 ) {
                 if ( buffer[1] & 0x80 ) {
                     printf("Exception %d\n", buffer[2] );
-                    assert(0);  // FIXME read exception
+                    /// \todo   Implement modbus exception handling
+                    assert(0);  
                 } else {
                     if ( readComplete( fd, buffer+3, rx_len-3 ) >= 0 ) {
 
@@ -225,6 +226,7 @@ int ModBus::readVariable( unsigned int address, unsigned int scale, unsigned int
             rc = -1;
         }
     } else if ( ( address & ModBus::VT_MASK ) == ModBus::VT_OUTPUT_REGISTER ) {
+        /// \todo   remove assert in modbus code
         assert(0);
     } else {
         rc = -1;
@@ -239,8 +241,10 @@ int ModBus::writeRawVariable( unsigned int address, unsigned int count, Value* d
     int rc = -1;
 
     if ( ( address & ModBus::VT_MASK ) == ModBus::VT_OUTPUT_COIL ) {
+        /// \todo   remove assert in modbus code
         assert(0);
     } else if ( ( address & ModBus::VT_MASK ) == ModBus::VT_INPUT_CONTACT ) {
+        /// \todo   remove assert in modbus code
         assert(0);
     } else if ( ( address & ModBus::VT_MASK ) == ModBus::VT_INPUT_REGISTER ) {
 
@@ -265,6 +269,7 @@ int ModBus::writeRawVariable( unsigned int address, unsigned int count, Value* d
             rc = 0;
         }
     } else if ( ( address & ModBus::VT_MASK ) == ModBus::VT_OUTPUT_REGISTER ) {
+        /// \todo   remove assert in modbus code
         assert(0);
     } else {
         rc = -1;
@@ -272,14 +277,13 @@ int ModBus::writeRawVariable( unsigned int address, unsigned int count, Value* d
     return rc;
 }
 
-ModBus::ModBus( const char* ip, unsigned short port, unsigned int id ) {
-    m_ip = strdup( ip );
+ModBus::ModBus( std::string ip, unsigned short port, unsigned int id ) {
+    m_ip = ip;
     m_port = port;
     m_id = id;
 }
 
 ModBus::~ModBus() {
-    free( (void*)m_ip );
 }
 
 
