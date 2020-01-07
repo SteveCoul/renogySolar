@@ -18,12 +18,13 @@
 #include <iostream>
 #include <sstream>
 
-#include "Args.hpp"
-#include "Task.hpp"
-#include "Log.hpp"
-#include "ModBus.hpp"
-#include "Renogy.hpp"
+#include <Args.hpp>
 #include <HTTPServer.hpp>
+#include <Log.hpp>
+#include <ModBus.hpp>
+#include <Renogy.hpp>
+#include <Task.hpp>
+#include <XML2JSON.hpp>
 
 ///
 /// \class Controller
@@ -70,7 +71,7 @@ public:
     }
          
     int HTTPServerRequest( std::string path, std::string query, std::string& response, std::string& content_type, std::string& body ) {
-        if ( path.compare("/data.xml" ) != 0 ) {
+        if ( ( path.compare("/data.xml" ) != 0 ) && ( path.compare("/data.json" ) != 0 ) ) {
             response = "Not Found";
             return 404;
         }
@@ -104,9 +105,17 @@ public:
         m_body << "\t</generation>\n"; 
                     
         m_body << "</controller>\n"; 
- 
-        content_type = "text/xml";
-        body = m_body.str();
+
+        if ( path.compare("data.xml") == 0 ) { 
+            content_type = "text/xml";
+            body = m_body.str();
+        } else {
+            content_type = "text/json";
+            XML2JSON json;
+            std::string body_string = m_body.str();
+
+            body = json.convert( body_string );
+        }
         response = "OK";
         return 200;
     }
