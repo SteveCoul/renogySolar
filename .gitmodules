@@ -1,0 +1,3 @@
+[submodule "OSXAutoTools"]
+	path = OSXAutoTools
+	url = git@github.com:SteveCoul/OSXAutoTools.git
