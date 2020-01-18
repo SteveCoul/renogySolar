@@ -17,4 +17,13 @@ jobs:
       run: ./configure
     - name: make
       run: make
-  
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: tools
+      run: git submodule update --init 
+    -name: autotools
+      run: make -f OSXAutotools
+      
