@@ -13,8 +13,11 @@ jobs:
       run: git submodule update --init
     - name: Make autotools
       run: make -f OSXAutoTools/Makefile
-    - name: Use autotools
-      run: export PATH=$PATH:$PWD/autotools_osx.build/bin
-    - name: autoreconf 
-      run: autoreconf -i
+    - name: autoreconf
+      run: PATH=$PATH:$PWD/autotools_osx.build/bin autoreconf -i
+    - name: configure
+      run: PATH=$PATH:$PWD/autotools_osx.build/bin ./configure
+    - name: make
+      run: make
+
 
