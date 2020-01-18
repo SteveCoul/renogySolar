@@ -14,9 +14,9 @@ jobs:
     - name: Make autotools
       run: make -f OSXAutoTools/Makefile
     - name: autoreconf
-      run: PATH=$PATH:$PWD/autotools_osx.build/bin autoreconf -i
+      run: PATH=$PATH:$PWD/bin autoreconf -i
     - name: configure
-      run: PATH=$PATH:$PWD/autotools_osx.build/bin ./configure
+      run: PATH=$PATH:$PWD/bin ./configure
     - name: make
       run: make
 
