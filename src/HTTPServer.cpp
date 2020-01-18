@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/poll.h>
 
 #include <algorithm>
 #include <sstream>
@@ -114,8 +115,26 @@ void HTTPServer::process( int timeout ) {
 int HTTPServer::readLine( int fd, std::string& result ) {
     result = "";
     for (;;) {
+        int ret;
+        struct pollfd pfd;
+        memset( &pfd, 0, sizeof(pfd) );
+        pfd.fd = fd;
+        pfd.events = POLLIN;
+
+        ret = poll( &pfd, 1, 1000 );
+        if ( ret < 0 ) {
+            log( LOG_WARNING, "failed poll in readline [%s]", strerror(errno) );
+            return -1;
+        }
+
+        if ( ( pfd.revents & POLLIN ) == 0 ) {
+            log( LOG_WARNING, "no data, timeout on readline in http server [%s]", strerror(errno) );
+            errno = ETIMEDOUT;
+            return -1;
+        }
+
         char c;
-        int ret = read( fd, &c, 1 );
+        ret = read( fd, &c, 1 );
         if ( ret == 0 ) 
             break;
         else if ( ret < 0 ) {
