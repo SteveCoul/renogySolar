@@ -1,0 +1,16 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get autotools
+      run: git submodule update --init
+    - name: Make autotools
+      run: make -f OSXAutoTools
+
